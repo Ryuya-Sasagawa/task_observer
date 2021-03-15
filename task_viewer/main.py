@@ -44,57 +44,85 @@ nb.add(graphTab, text='グラフ')
 nb.add(tableTab, text='表')
 # グラフ設定
 frame = tk.Frame(graphTab, background='gray', height=50)
-# グラフ設定：日時：フレーム＆見出し
+
+# グラフ設定：日時
 dateFrame = tk.Frame(frame, background='white', height=50)
 dateLabel = tk.Label(dateFrame, text='日時', font=12)
-
-
 # グラフ設定：日時：共用関数
 def baserestrict(i, S, lim):
     if int(i) >= int(lim) or not S.isdecimal():
         return False
     return True
 
-
 # TODO: 公開するときには、例外(2020/13/32など)を入力できないようにしたい
 def enterevent(entry):
     entry.focus_set()
-
-
-# グラフ設定：日時：年
 vcmd1 = (dateFrame.register(baserestrict), '%i', '%S', 4)
+vcmd2 = (dateFrame.register(baserestrict), '%i', '%S', 2)
+
+# グラフ設定：日時：from：年
 year = tk.Entry(dateFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
 year.bind('<Return>', lambda event: enterevent(month))
 slashLabel = tk.Label(dateFrame, text='/', font=12)
-# グラフ設定：日時：共用(月、日、時)
-vcmd2 = (dateFrame.register(baserestrict), '%i', '%S', 2)
-# グラフ設定：日時：月
+# グラフ設定：日時：from：月
 month = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
 slashLabel2 = tk.Label(dateFrame, text='/', font=12)
 month.bind('<Return>', lambda event: enterevent(day))
-# グラフ設定：日時：日
+# グラフ設定：日時：from：日
 day = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
 minusLabel = tk.Label(dateFrame, text='-', font=12)
 day.bind('<Return>', lambda event: enterevent(hour))
-# グラフ設定：日時：時
+# グラフ設定：日時：from：時
 hour = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
 restLabel = tk.Label(dateFrame, text=':00:00', font=12)
-hour.bind('<Return>', lambda event: enterevent(date_btn))
+hour.bind('<Return>', lambda event: enterevent(year2))
 
+# グラフ設定：日時：～
+tildeLabel = tk.Label(dateFrame, text='～', font=12)
+# グラフ設定：日時：to：年
+year2 = tk.Entry(dateFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+year2.bind('<Return>', lambda event: enterevent(month2))
+slashLabel3 = tk.Label(dateFrame, text='/', font=12)
+# グラフ設定：日時：to：月
+month2 = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+slashLabel4 = tk.Label(dateFrame, text='/', font=12)
+month2.bind('<Return>', lambda event: enterevent(day2))
+# グラフ設定：日時：to：日
+day2 = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+minusLabel2 = tk.Label(dateFrame, text='-', font=12)
+day2.bind('<Return>', lambda event: enterevent(hour2))
+# グラフ設定：日時：to：時
+hour2 = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+restLabel2 = tk.Label(dateFrame, text=':00:00', font=12)
+hour2.bind('<Return>', lambda event: enterevent(date_btn))
 
 # グラフ設定：日時：ボタン
 def move():
-    if year.get().isdecimal() and month.get().isdecimal() and \
-            day.get().isdecimal() and hour.get().isdecimal():
-        if int(year.get()) >= 1970 and int(year.get()) <= 2500:
-            if int(month.get()) >= 1 and int(month.get()) <= 12:
-                if int(day.get()) >= 1 and int(day.get()) <= myDate.lastdate(int(year.get()), int(month.get())):
-                    if int(hour.get()) >= 0 and int(hour.get()) <= 23:
-                        # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
-                        graph.absoluteMove(year.get() + '-' + month.get() + '-' + day.get() + ' ' + hour.get())
-                        canvas.draw()
-                        canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
-                        return
+    d = year.get(), month.get(), day.get(), hour.get(), \
+        year2.get(), month2.get(), day2.get(), hour2.get()
+    flag = True
+    for i in d:
+        if not i.isdecimal():
+            flag = False
+
+    if flag is True:
+        d = list(map(int, d))
+        if 1970 <= d[0] <= 2500 and 1970 <= d[4] <= 2500:
+            if 1 <= d[1] <= 12 and 1 <= d[5] <= 12:
+                if 1 <= d[2] <= myDate.lastdate(d[0], d[1]) and \
+                        1 <= d[6] <= myDate.lastdate(d[4], d[5]):
+                    if 0 <= d[3] <= 23 and 0 <= d[7] <= 23:
+                        if d[0] < d[4] or \
+                            (d[0] == d[4] and d[1] < d[5]) or \
+                            (d[0] == d[4] and d[1] == d[5] and d[2] < d[6]) or \
+                            (d[0] == d[4] and d[1] == d[5] and d[2] == d[6] and d[3] < d[7]):
+                            # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
+                            graph.absoluteMove(year.get() + '-' + month.get() + '-' + day.get() + ' ' + hour.get())
+                            canvas.draw()
+                            canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+                            return
+                    messagebox.showerror('エラー', '範囲が正しくありません。')
+                    return
     messagebox.showerror('エラー', '日付が正しくありません。')
 
 
@@ -216,6 +244,15 @@ day.pack(side='left')
 minusLabel.pack(side='left')
 hour.pack(side='left')
 restLabel.pack(side='left')
+tildeLabel.pack(side='left')
+year2.pack(side='left')
+slashLabel3.pack(side='left')
+month2.pack(side='left')
+slashLabel4.pack(side='left')
+day2.pack(side='left')
+minusLabel2.pack(side='left')
+hour2.pack(side='left')
+restLabel2.pack(side='left')
 date_btn.pack(side='left')
 # 棒グラフ
 barFrame.pack(side='left', expand=True)
