@@ -22,7 +22,7 @@ WEEK_LENGTH: Final[int] = 7
 MONTH_LENGTH: Final[int] = 30
 YEAR_LENGTH: Final[int] = 365
 PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-FILEPATH: Final[str] = '../task_checker2/data/applicationLog'
+FILEPATH: Final[str] = '../data/applicationLog'
 
 # -----初期設定-----
 scroll_length = HOUR_LENGTH
