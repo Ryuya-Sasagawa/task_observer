@@ -1,6 +1,7 @@
 from pynput import mouse, keyboard
 import time
 
+# マウスの操作(クリックとスクロール)を検出するクラス
 class Mouse:
     def start(self):
         self.listener.start()
@@ -8,6 +9,7 @@ class Mouse:
         self.listener.stop()
     def reset(self):
         self.clickCounter = self.scrollCounter = 0
+
     def getClick(self):
         return self.clickCounter
     def getScroll(self):
@@ -24,6 +26,7 @@ class Mouse:
         self.scrollCounter = 0
         self.listener = mouse.Listener(on_click=self.click, on_scroll=self.scroll)
 
+# キーボードの操作(キー入力)を検出するクラス
 class Keyboard:
     def start(self):
         self.listener.start()
@@ -42,6 +45,7 @@ class Keyboard:
         self.keyCounter = 0
         self.listener = keyboard.Listener(on_press=self.press)
 
+# debug
 if __name__ == '__main__':
     m = Mouse()
     k = Keyboard()
