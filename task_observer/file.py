@@ -31,7 +31,7 @@ def write(path, password, data):
 
 if __name__ == '__main__':
     password = 'testtesttest'
-    t = read('data/applicationLog', password)
+    t = read('../data/applicationLog', password)
     print(t)
     # write('data/aesTest6', password, 'aiueoあいうえおアイウエオAIUEO12345')
 

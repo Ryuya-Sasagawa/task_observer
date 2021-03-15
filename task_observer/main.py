@@ -7,7 +7,7 @@ import inputDevice
 import file
 
 # 定数
-LOGFILE_NAME: Final[str] = 'data/applicationLog'
+LOGFILE_NAME: Final[str] = '../data/applicationLog'
 LOGFILE_WRITE_TIMING: Final[int] = 100
 PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
 
@@ -64,33 +64,3 @@ if __name__ == '__main__':
         mouse.stop()
         keyboard.reset()
         sys.exit(0)
-
-    # with open('data/applicationLog', 'a', encoding='utf-8') as f:
-    #     try:
-    #         while True:
-    #             activeWindowTitle = getActiveWindowTitle()
-    #
-    #             if bufWindowTitle != activeWindowTitle and len(activeWindowTitle) != 0:
-    #                 temp = datetime.datetime.fromtimestamp(time.time())
-    #                 if len(bufWindowTitle) != 0:
-    #                     print(temp-now, end=' ')
-    #                     print(str(mouse.getClick()) + " " + str(keyboard.getPress()))
-    #                     f.write('end ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n')
-    #                     f.write('time ' + str(temp-now) + '\n')
-    #                     f.write('operation ' + str(mouse.getClick()) + " " + str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n')
-    #                 now = temp
-    #                 mouse.reset()
-    #                 keyboard.reset()
-    #                 print(now, activeWindowTitle)
-    #                 f.write('name ' + activeWindowTitle + '\n')
-    #                 f.write('start ' + now.strftime('%Y-%m-%d %H:%M:%S') + '\n')
-    #                 bufWindowTitle = activeWindowTitle
-    #
-    #     except KeyboardInterrupt:
-    #         temp = datetime.datetime.fromtimestamp(time.time())
-    #         f.write('end ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n')
-    #         f.write('time ' + str(temp - now) + '\n')
-    #         f.write('operation ' + str(mouse.getClick()) + " " + str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n')
-    #         mouse.stop()
-    #         keyboard.reset()
-    #         sys.exit(0)
