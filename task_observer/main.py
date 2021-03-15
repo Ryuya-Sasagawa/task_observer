@@ -39,8 +39,8 @@ if __name__ == '__main__':
                 temp = datetime.datetime.fromtimestamp(time.time())  # アプリの使用開始時刻を取得
                 # 「main.pyの起動から最初にアプリを開くまで」を除外
                 if len(bufWindowTitle) != 0:
-                    print(temp - now, end=' ')  # debug
-                    print(str(mouse.getClick()) + " " + str(keyboard.getPress()))  # debug
+                    # print(temp - now, end=' ')  # debug
+                    # print(str(mouse.getClick()) + " " + str(keyboard.getPress()))  # debug
                     logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'  # アプリの使用終了時刻
                     logBuffer += 't ' + str(temp - now) + '\n'  # アプリの使用時間
                     # アプリ使用中のクリック、スクロール、キー入力
@@ -51,14 +51,14 @@ if __name__ == '__main__':
                     if lb_lineCount == lb_writeTiming:
                         # AESで暗号化して書き込み
                         file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
-                        print('write down to file')  # debug
+                        # print('write down to file')  # debug
                         lb_lineCount = 0
                         logBuffer = ''
 
                 now = temp  # アプリの使用開始時刻
                 mouse.reset()  # クリック、スクロールのカウントをリセット
                 keyboard.reset()  # キー入力のカウントをリセット
-                print(now, activeWindowTitle)  # debug
+                # print(now, activeWindowTitle)  # debug
                 logBuffer += 'n ' + activeWindowTitle + '\n'  # アプリの名前
                 logBuffer += 's ' + now.strftime('%Y-%m-%d %H:%M:%S') + '\n'  # アプリの使用開始時刻
                 bufWindowTitle = activeWindowTitle
