@@ -1,5 +1,6 @@
 import datetime
 import file
+import myDate
 
 class work_per_hour:
     def __init__(self, date):
@@ -51,15 +52,9 @@ class work:
     def getdata(self):
         return self.time, self.opperation
 
-class work_per_free(work_per_hour):
-    def __init__(self, date):
-        super(work_per_free, self).__init__(date)
 
-    def addworkList(self, worklist):
-        for i in [r[1] for r in worklist]:
-            self.addwork(i)
-# TODO: 必要になったらテストを行う
-
+def sortmethod(wph):
+    return myDate.datetimeToFloat(wph[0])
 
 def parseData(filename, password):
     wphList = []
@@ -75,7 +70,7 @@ def parseData(filename, password):
             start_hour = start.strftime('%Y-%m-%d %H')
             if start_hour not in [r[0] for r in wphList]:
                 wphList.append([start_hour, work_per_hour(start_hour)])
-                wphList = sorted(wphList)
+                wphList = sorted(wphList, key=sortmethod)
             index = [r[0] for r in wphList].index(start_hour)
             if start_hour != end.strftime('%Y-%m-%d %H'):
                 start_nextHour = datetime.datetime.strptime(start_hour, '%Y-%m-%d %H') + datetime.timedelta(hours=1)
@@ -93,6 +88,29 @@ def parseData(filename, password):
                 break
 
     return wphList
+
+def reform(wphList, barset):
+    reformedList = []
+    # 2行下の割る数を変数にして1,3,6,12,24まで対応可能。
+    # 1wのwphtimeは、以下の手順で求める。
+    # 1, wl[0]からdatetimeを作成
+    # 2, datetimeから曜日を取得
+    # 3, datetimeより過去の一番近い「引数で取得した1週間の初めの曜日(デフォルトは日曜)」をwphtimeに代入
+    # 1mのwphtimeはwl[0]から年月だけ抽出し、その月の一日をwphtimeに代入
+    for wl in wphList:# TODO: 3時間以外も実装。barsetで分岐して処理を書く
+        wphtime = wl[0].split(' ')[0] + ' ' + str(int(int(wl[0].split(' ')[1]) / 3)*3)
+        # print(wl[0], wphtime)
+        if wphtime not in [r[0] for r in reformedList]:
+            reformedList.append([wphtime, work_per_hour(wphtime)])
+            reformedList = sorted(reformedList, key=sortmethod)
+        index = [r[0] for r in reformedList].index(wphtime)
+        # print("wl[1]: ", wl[1].getworklist())
+        for w in wl[1].getworklist():
+            # print('w: ', w[1])
+            reformedList[index][1].addwork(w[1])
+
+    return reformedList
+
 
 if __name__ == '__main__':
     wphList = []

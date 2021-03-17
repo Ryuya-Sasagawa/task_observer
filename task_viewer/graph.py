@@ -21,17 +21,24 @@ class Graph:
         self.init()
         self.blank = self.BLANK_HOUR
 
-    def init(self):
-        self.ax.set_ylabel("minutes")
+    def init(self, ylabel='minutes', ylim=62, locator_span='day'):
+        self.ax.set_ylabel(ylabel)
+        self.ax.set_ylim(0, ylim)
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
-        # days = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
-        # daysFmt = mdates.DateFormatter('%d/%H')
-        days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
-        daysFmt = mdates.DateFormatter("%Y-%m-%d")
-        # days = mdates.MonthLocator(interval=1, tz=None)
-        # daysFmt = mdates.DateFormatter("%Y-%m")
+        if locator_span == 'hour':
+            days = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
+            daysFmt = mdates.DateFormatter('%d/%H')
+        elif locator_span == 'day':
+            days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
+            daysFmt = mdates.DateFormatter("%Y-%m-%d")
+        elif locator_span == 'month':
+            days = mdates.MonthLocator(interval=1, tz=None)
+            daysFmt = mdates.DateFormatter("%Y-%m")
         self.ax.xaxis.set_major_locator(days)
         self.ax.xaxis.set_major_formatter(daysFmt)
+    # TODO: datetimeIndexかstr型のxと[名前、時間]の二次元配列を引数にして棒グラフを描く関数を実装する。widthはグラフの横幅
+    def plotbar(self, worklist, width):
+        pass
 
     def reset(self):
         self.ax.clear()

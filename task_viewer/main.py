@@ -48,15 +48,22 @@ frame = tk.Frame(graphTab, background='gray', height=50)
 # グラフ設定：日時
 dateFrame = tk.Frame(frame, background='white', height=50)
 dateLabel = tk.Label(dateFrame, text='日時', font=12)
+
+
 # グラフ設定：日時：共用関数
 def baserestrict(i, S, lim):
     if int(i) >= int(lim) or not S.isdecimal():
         return False
     return True
 
+
 # TODO: 公開するときには、例外(2020/13/32など)を入力できないようにしたい
 def enterevent(entry):
     entry.focus_set()
+    if 'select_range' in dir(entry):
+        entry.select_range(0, len(entry.get()))
+
+
 vcmd1 = (dateFrame.register(baserestrict), '%i', '%S', 4)
 vcmd2 = (dateFrame.register(baserestrict), '%i', '%S', 2)
 
@@ -96,6 +103,7 @@ hour2 = tk.Entry(dateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'
 restLabel2 = tk.Label(dateFrame, text=':00:00', font=12)
 hour2.bind('<Return>', lambda event: enterevent(date_btn))
 
+
 # グラフ設定：日時：ボタン
 def move():
     d = year.get(), month.get(), day.get(), hour.get(), \
@@ -113,13 +121,15 @@ def move():
                         1 <= d[6] <= myDate.lastdate(d[4], d[5]):
                     if 0 <= d[3] <= 23 and 0 <= d[7] <= 23:
                         if d[0] < d[4] or \
-                            (d[0] == d[4] and d[1] < d[5]) or \
-                            (d[0] == d[4] and d[1] == d[5] and d[2] < d[6]) or \
-                            (d[0] == d[4] and d[1] == d[5] and d[2] == d[6] and d[3] < d[7]):
+                                (d[0] == d[4] and d[1] < d[5]) or \
+                                (d[0] == d[4] and d[1] == d[5] and d[2] < d[6]) or \
+                                (d[0] == d[4] and d[1] == d[5] and d[2] == d[6] and d[3] < d[7]):
                             # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
-                            graph.absoluteMove(year.get() + '-' + month.get() + '-' + day.get() + ' ' + hour.get())
-                            canvas.draw()
-                            canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+                            d = list(map(str, d))
+                            graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3])
+                            graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
+                                                myDate.datetimeToFloat(d[0]+'-'+d[1]+'-'+d[2]+' '+d[3]))
+                            graph.rewrite()
                             return
                     messagebox.showerror('エラー', '範囲が正しくありません。')
                     return
@@ -133,45 +143,57 @@ date_btn.bind('<Return>', lambda event: move())
 barFrame = tk.Frame(frame, background='white', height=50)
 barLabel = tk.Label(barFrame, text='棒グラフ', font=12)
 
-
-def getBarSpan(v):
-    # print('validate:', v)
+# 一本の棒グラフで表す期間を変更する関数
+# def getBarSpan():
+#     if 「棒グラフ」のコンボボックスが変更されたら:
+#         barset = barFormat.get()
+#         reformedList = readData.reform(graphDataList, barset)
+#         graph.reset()
+#         graph.init(y_label=labelList(barset), locator=locatorList(barset))
+#         ~~~
+#             ax.barでグラフを追加
+#         ~~~
+#         graph.rewrite()
+#         span = spanList(barset)
+# TODO: 上記のプログラムを実装する。
+#   また、barset毎にグラフ1本の横幅とspan(barset=1h:1/24, 3h:1/8, 1d:1...)を変更する
+def getBarSpan():
     # print(barFormat.get())
-    # TODO: barsetとbarFormat.getが一致していない場合barsetを更新。
-    #  barsetの値で分岐して、barsetで定義された範囲でgraphDataListを整形する(graph.pyに実装)
     global barset, scroll_length, span
     if barset != barFormat.get():
         barset = barFormat.get()
-        graph.relativeMove(span/2)
-        if barset == '1h':
-            scroll_length = HOUR_LENGTH
-            span = HALFDAY_LENGTH
-        elif barset == '3h':
-            scroll_length = HOUR_LENGTH
-            span = DAY_LENGTH
-        elif barset == '6h':
-            scroll_length = HALFDAY_LENGTH
-            span = DAY_LENGTH
-        elif barset == '12h':
-            scroll_length = HALFDAY_LENGTH
-            span = WEEK_LENGTH
-        elif barset == '1d':
-            scroll_length = DAY_LENGTH
-            span = WEEK_LENGTH
-        elif barset == '1w':
-            scroll_length = WEEK_LENGTH
-            span = MONTH_LENGTH
-        elif barset == '1m':
-            scroll_length = MONTH_LENGTH
-            span = YEAR_LENGTH
+        reformedList = readData.reform(graphDataList, barset)
+        print(reformedList)
+        # graph.relativeMove(span / 2)
+        # if barset == '1h':
+        #     scroll_length = HOUR_LENGTH
+        #     span = HALFDAY_LENGTH
+        # elif barset == '3h':
+        #     scroll_length = HOUR_LENGTH
+        #     span = DAY_LENGTH
+        # elif barset == '6h':
+        #     scroll_length = HALFDAY_LENGTH
+        #     span = DAY_LENGTH
+        # elif barset == '12h':
+        #     scroll_length = HALFDAY_LENGTH
+        #     span = WEEK_LENGTH
+        # elif barset == '1d':
+        #     scroll_length = DAY_LENGTH
+        #     span = WEEK_LENGTH
+        # elif barset == '1w':
+        #     scroll_length = WEEK_LENGTH
+        #     span = MONTH_LENGTH
+        # elif barset == '1m':
+        #     scroll_length = MONTH_LENGTH
+        #     span = YEAR_LENGTH
         # print(barset)
-        graph.absoluteRange(span)
-        graph.relativeMove(-span/2)
+        # graph.absoluteRange(span)
+        # graph.relativeMove(-span / 2)
 
     return True
 
 
-vcmd3 = (dateFrame.register(getBarSpan), '%V')
+vcmd3 = (dateFrame.register(getBarSpan))
 barFormat = ttk.Combobox(barFrame, state='readonly', width=5, font=12, validatecommand=vcmd3, validate='focusin')
 barFormat["values"] = ("1h", "3h", "6h", "12h", "1d", "1w", "1m")
 barFormat.current(0)
@@ -185,12 +207,9 @@ widthFormat["values"] = ("12h", "day", "week", "month", "year")
 widthFormat.current(0)
 
 
-# TODO: ボタンを複数用意する？
 def changeRange(sp):
     graph.relativeRange(sp)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
-
+    graph.rewrite()
 
 # TODO:矢印は画像に差し替える
 narrow_btn = tk.Button(master=widthFrame, text='→←', command=lambda: changeRange(-span))
@@ -201,8 +220,7 @@ wide_btn = tk.Button(master=widthFrame, text='←→', command=lambda: changeRan
 # TODO:矢印は画像に差し替える
 def locate(sclen):
     graph.relativeMove(sclen)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+    graph.rewrite()
 
 
 left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-scroll_length))
@@ -213,8 +231,8 @@ graph = graph.Graph()
 graphDataList = readData.parseData(FILEPATH, PASSWORD)
 
 for wl in graphDataList:  # graphDataListをグラフに描画
-    print(wl[0])
-    x = pd.DatetimeIndex(pd.DatetimeIndex([wl[0] + ':00:00']))
+    # print(wl[0])
+    x = pd.DatetimeIndex([wl[0] + ':00:00'])
     base = 0
     for w in wl[1].getworklist():
         # print(w[1].getdata()[0].total_seconds()/60)
@@ -222,11 +240,20 @@ for wl in graphDataList:  # graphDataListをグラフに描画
         graph.getax().bar(x, time, bottom=base, align='edge', width=0.03)  # データの描画
         base += time
 
-# print(graphDataList[-1][0])
-
 graph.absoluteRange(span)  # TODO: spanとは別の変数を使用する？(spanは本来ボタンクリックで変化する幅の変数)
 graph.absoluteMove(graphDataList[-1][0])
 graph.relativeMove(-(span / 2))
+# reformedlist = readData.reform(graphDataList, 0)
+
+# for wl in reformedlist:
+#     print(wl[0])
+#     for w in wl[1].getworklist():
+#         print('  ', w[0], w[1].getdata())
+#
+# for wl in graphDataList:
+#     print(wl[0])
+#     for w in wl[1].getworklist():
+#         print('  ', w[0], w[1].getdata())
 
 # -----レイアウト生成-----
 # タブ
@@ -269,15 +296,9 @@ wide_btn.pack(side='left')
 # 移動ボタン(左)
 left_btn.pack(fill='x', padx=20, side='left')
 # グラフ
-canvas = FigureCanvasTkAgg(graph.getfig(), master=graphTab)
-canvas.draw()
-canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+graph.pack(graphTab)
 # 移動ボタン(右)
 right_btn.pack(fill='x', padx=20, side='right')
 
 # 実行
 root.mainloop()
-# TODO: グラフの横幅に応じて罫線を変える
-# TODO: グラフの横幅に応じて横幅変更ボタンの振れ幅を変える
-#  or 振れ幅を設定するコンボボックスを作る
-#  or ボタンを廃止、コンボボックスに入力できるようにする
