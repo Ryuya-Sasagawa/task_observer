@@ -26,10 +26,10 @@ class Graph:
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
         # days = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
         # daysFmt = mdates.DateFormatter('%d/%H')
-        # days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
-        # daysFmt = mdates.DateFormatter("%Y-%m-%d")
-        days = mdates.MonthLocator(interval=1, tz=None)
-        daysFmt = mdates.DateFormatter("%Y-%m")
+        days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
+        daysFmt = mdates.DateFormatter("%Y-%m-%d")
+        # days = mdates.MonthLocator(interval=1, tz=None)
+        # daysFmt = mdates.DateFormatter("%Y-%m")
         self.ax.xaxis.set_major_locator(days)
         self.ax.xaxis.set_major_formatter(daysFmt)
 
@@ -57,3 +57,12 @@ class Graph:
     def absoluteRange(self, span):
         if span > 0:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[0] + span)
+
+    def pack(self, master):
+        self.canvas = FigureCanvasTkAgg(self.fig, master=master)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+
+    def rewrite(self):
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
