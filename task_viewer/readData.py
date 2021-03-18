@@ -130,19 +130,16 @@ def reform(wphList, barset, Day='Sun'):
             wphtime = datetime.datetime.strptime(wl[0], '%Y-%m-%d %H')
             div = (wphtime.weekday() + 7 - dayDict[Day]) % 7
             wphtime = (wphtime - datetime.timedelta(days=div)).strftime('%Y-%m-%d 0')
-            print(wl[0], wphtime)
+            # print(wl[0], wphtime)
             reformedList = appendworks(wl, wphtime, reformedList)
         return reformedList
 
     elif barsetDict[barset] == 102:
         for wl in wphList:
             wphtime = wl[0].split('-')[0] + '-' + wl[0].split('-')[1] + '-01 0'
-            print(wl[0], wphtime)
+            # print(wl[0], wphtime)
             reformedList = appendworks(wl, wphtime, reformedList)
         return reformedList
-
-    print('barset error')
-    return []
 
 if __name__ == '__main__':
     wphList = []

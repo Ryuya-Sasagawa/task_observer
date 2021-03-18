@@ -14,14 +14,14 @@ from typing import Final
 import myDate
 
 class Graph:
-    BLANK_HOUR: Final[float] = 0.01
     def __init__(self):
         self.fig = plt.Figure()
         self.ax = self.fig.add_subplot(111)
         self.init()
-        self.blank = self.BLANK_HOUR
+        self.blank = 0
+        self.barwidth = 0
 
-    def init(self, ylabel='minutes', ylim=62, locator_span='day'):
+    def init(self, ylabel='minutes', ylim=62, locator_span='hour'):
         self.ax.set_ylabel(ylabel)
         self.ax.set_ylim(0, ylim)
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
@@ -36,9 +36,16 @@ class Graph:
             daysFmt = mdates.DateFormatter("%Y-%m")
         self.ax.xaxis.set_major_locator(days)
         self.ax.xaxis.set_major_formatter(daysFmt)
-    # TODO: datetimeIndexかstr型のxと[名前、時間]の二次元配列を引数にして棒グラフを描く関数を実装する。widthはグラフの横幅
-    def plotbar(self, worklist, width):
-        pass
+
+    def plotbar(self, x, worklist, width, per='min'):
+        self.barwidth = width
+        perDict = {'sec':1, 'min':60, 'hour':3600}
+        base = 0
+        for w in worklist[1].getworklist():
+            # print(w[1].getdata()[0].total_seconds()/60)
+            time = w[1].getdata()[0].total_seconds() / perDict[per]
+            self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
+            base += time
 
     def reset(self):
         self.ax.clear()
@@ -51,18 +58,24 @@ class Graph:
         if self.ax.get_xlim()[0] + dig >= 0:
             self.ax.set_xlim(self.ax.get_xlim()[0] + dig, self.ax.get_xlim()[1] + dig)
 
-    def absoluteMove(self, date):
+    def absoluteMove(self, date, blank=-1):
         loc = myDate.datetimeToFloat(date)
         span = self.ax.get_xlim()[1] - self.ax.get_xlim()[0]
         if loc >= 0:
+            if blank >= 0:
+                self.blank = blank
             self.ax.set_xlim(loc - self.blank, loc+span - self.blank)
 
     def relativeRange(self, span):
-        if self.ax.get_xlim()[0] < self.ax.get_xlim()[1] + span:
+        if self.ax.get_xlim()[0] + self.barwidth + self.blank < self.ax.get_xlim()[1] + span:
+            print(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span, self.ax.get_xlim()[0] < self.ax.get_xlim()[1] + span)
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span)
+            print(self.ax.get_xlim()[0], self.ax.get_xlim()[1])
+            return True
+        return False
 
     def absoluteRange(self, span):
-        if span > 0:
+        if span > self.barwidth + self.blank:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[0] + span)
 
     def pack(self, master):

@@ -25,8 +25,7 @@ PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
 FILEPATH: Final[str] = '../data/applicationLog'
 
 # -----初期設定-----
-scroll_length = HOUR_LENGTH
-span = HALFDAY_LENGTH
+span = HOUR_LENGTH
 barset = '1h'
 
 # -----ウィンドウ設定-----
@@ -127,7 +126,7 @@ def move():
                                 (d[0] == d[4] and d[1] == d[5] and d[2] == d[6] and d[3] < d[7]):
                             # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
                             d = list(map(str, d))
-                            graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3])
+                            graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3], blank=span*0.3)
                             graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
                                                 myDate.datetimeToFloat(d[0]+'-'+d[1]+'-'+d[2]+' '+d[3]))
                             graph.rewrite()
@@ -151,46 +150,32 @@ barLabel = tk.Label(barFrame, text='棒グラフ', font=12)
 #         reformedList = readData.reform(graphDataList, barset)
 #         graph.reset()
 #         graph.init(y_label=labelList(barset), locator=locatorList(barset))
-#         ~~~
-#             ax.barでグラフを追加
-#         ~~~
+#         ax.barでグラフを追加
 #         graph.rewrite()
 #         span = spanList(barset)
-# TODO: 上記のプログラムを実装する。
-#   また、barset毎にグラフ1本の横幅とspan(barset=1h:1/24, 3h:1/8, 1d:1...)を変更する
+
 def getBarSpan():
+    spanDict = {'1h':HOUR_LENGTH, '3h':HOUR_LENGTH*3, '6h':HOUR_LENGTH*6,
+                '12h':HALFDAY_LENGTH, '1d':DAY_LENGTH, '1w':WEEK_LENGTH, '1m':MONTH_LENGTH}
     # print(barFormat.get())
-    global barset, scroll_length, span
+    global barset, span
     if barset != barFormat.get():
         barset = barFormat.get()
+        span = spanDict[barset]
         reformedList = readData.reform(graphDataList, barset)
-        print(reformedList)
-        # graph.relativeMove(span / 2)
-        # if barset == '1h':
-        #     scroll_length = HOUR_LENGTH
-        #     span = HALFDAY_LENGTH
-        # elif barset == '3h':
-        #     scroll_length = HOUR_LENGTH
-        #     span = DAY_LENGTH
-        # elif barset == '6h':
-        #     scroll_length = HALFDAY_LENGTH
-        #     span = DAY_LENGTH
-        # elif barset == '12h':
-        #     scroll_length = HALFDAY_LENGTH
-        #     span = WEEK_LENGTH
-        # elif barset == '1d':
-        #     scroll_length = DAY_LENGTH
-        #     span = WEEK_LENGTH
-        # elif barset == '1w':
-        #     scroll_length = WEEK_LENGTH
-        #     span = MONTH_LENGTH
-        # elif barset == '1m':
-        #     scroll_length = MONTH_LENGTH
-        #     span = YEAR_LENGTH
-        # print(barset)
-        # graph.absoluteRange(span)
-        # graph.relativeMove(-span / 2)
-
+        # print(reformedList)
+        graph.reset()
+        locDict = {'1h':'hour', '3h':'hour', '6h':'day',
+                '12h':'day', '1d':'day', '1w':'month', '1m':'month'}
+        graph.init(ylim=span*24*62, locator_span=locDict[barset])
+        for wl in reformedList:
+            x = pd.DatetimeIndex([wl[0] + ':00:00'])
+            graph.plotbar(x, wl, span*0.7)
+        # print(reformedList[-1])
+        graph.absoluteRange(span * 8)
+        graph.absoluteMove(reformedList[-1][0], blank=span*0.3)
+        graph.relativeMove(-(span * 4))
+        graph.rewrite()
     return True
 
 
@@ -209,7 +194,8 @@ widthFormat.current(0)
 
 
 def changeRange(sp):
-    graph.relativeRange(sp)
+    if graph.relativeRange(sp*2):
+        graph.relativeMove(-sp)
     graph.rewrite()
 
 # TODO:矢印は画像に差し替える
@@ -219,13 +205,13 @@ wide_btn = tk.Button(master=widthFrame, text='←→', command=lambda: changeRan
 
 # グラフ設定：移動ボタン
 # TODO:矢印は画像に差し替える
-def locate(sclen):
-    graph.relativeMove(sclen)
+def locate(sp):
+    graph.relativeMove(sp)
     graph.rewrite()
 
 
-left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-scroll_length))
-right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(scroll_length))
+left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-span))
+right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
 
 # グラフ
 graph = graph.Graph()
@@ -234,27 +220,21 @@ graphDataList = readData.parseData(FILEPATH, PASSWORD)
 for wl in graphDataList:  # graphDataListをグラフに描画
     # print(wl[0])
     x = pd.DatetimeIndex([wl[0] + ':00:00'])
-    base = 0
-    for w in wl[1].getworklist():
-        # print(w[1].getdata()[0].total_seconds()/60)
-        time = w[1].getdata()[0].total_seconds() / 60
-        graph.getax().bar(x, time, bottom=base, align='edge', width=0.03)  # データの描画
-        base += time
+    graph.plotbar(x, wl, span*0.7)
 
-graph.absoluteRange(span)  # TODO: spanとは別の変数を使用する？(spanは本来ボタンクリックで変化する幅の変数)
-graph.absoluteMove(graphDataList[-1][0])
-graph.relativeMove(-(span / 2))
-reformedlist = readData.reform(graphDataList[6:8], '6h')
-
-for wl in reformedlist:
-    print(wl[0])
-    for w in wl[1].getworklist():
-        print('  ', w[0], w[1].getdata())
-
-for wl in graphDataList:
-    print(wl[0])
-    for w in wl[1].getworklist():
-        print('  ', w[0], w[1].getdata())
+graph.absoluteRange(span*8)
+graph.absoluteMove(graphDataList[-1][0], blank=span*0.3)
+graph.relativeMove(-(span*4))
+# reformedlist = readData.reform(graphDataList, '1m')
+# for wl in reformedlist:
+#     print(wl[0])
+#     for w in wl[1].getworklist():
+#         print('  ', w[0], w[1].getdata())
+#
+# for wl in graphDataList:
+#     print(wl[0])
+#     for w in wl[1].getworklist():
+#         print('  ', w[0], w[1].getdata())
 
 # -----レイアウト生成-----
 # タブ
