@@ -114,6 +114,7 @@ def move():
             flag = False
 
     if flag is True:
+        # TODO: datetimeに変換して比較する。graph.absolutemoveなどは、strftime関数で年月日を渡す
         d = list(map(int, d))
         if 1970 <= d[0] <= 2500 and 1970 <= d[4] <= 2500:
             if 1 <= d[1] <= 12 and 1 <= d[5] <= 12:
@@ -243,17 +244,17 @@ for wl in graphDataList:  # graphDataListをグラフに描画
 graph.absoluteRange(span)  # TODO: spanとは別の変数を使用する？(spanは本来ボタンクリックで変化する幅の変数)
 graph.absoluteMove(graphDataList[-1][0])
 graph.relativeMove(-(span / 2))
-# reformedlist = readData.reform(graphDataList, 0)
+reformedlist = readData.reform(graphDataList[6:8], '6h')
 
-# for wl in reformedlist:
-#     print(wl[0])
-#     for w in wl[1].getworklist():
-#         print('  ', w[0], w[1].getdata())
-#
-# for wl in graphDataList:
-#     print(wl[0])
-#     for w in wl[1].getworklist():
-#         print('  ', w[0], w[1].getdata())
+for wl in reformedlist:
+    print(wl[0])
+    for w in wl[1].getworklist():
+        print('  ', w[0], w[1].getdata())
+
+for wl in graphDataList:
+    print(wl[0])
+    for w in wl[1].getworklist():
+        print('  ', w[0], w[1].getdata())
 
 # -----レイアウト生成-----
 # タブ
