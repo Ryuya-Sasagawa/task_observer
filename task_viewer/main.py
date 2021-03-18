@@ -1,4 +1,5 @@
 import sys
+import datetime
 # ウィンドウAPI
 from typing import Final
 import tkinter as tk
@@ -113,26 +114,17 @@ def move():
             flag = False
 
     if flag is True:
-        # TODO: datetimeに変換して比較する。graph.absolutemoveなどは、strftime関数で年月日を渡す
-        d = list(map(int, d))
-        if 1970 <= d[0] <= 2500 and 1970 <= d[4] <= 2500:
-            if 1 <= d[1] <= 12 and 1 <= d[5] <= 12:
-                if 1 <= d[2] <= myDate.lastdate(d[0], d[1]) and \
-                        1 <= d[6] <= myDate.lastdate(d[4], d[5]):
-                    if 0 <= d[3] <= 23 and 0 <= d[7] <= 23:
-                        if d[0] < d[4] or \
-                                (d[0] == d[4] and d[1] < d[5]) or \
-                                (d[0] == d[4] and d[1] == d[5] and d[2] < d[6]) or \
-                                (d[0] == d[4] and d[1] == d[5] and d[2] == d[6] and d[3] < d[7]):
-                            # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
-                            d = list(map(str, d))
-                            graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3], blank=span*0.3)
-                            graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
-                                                myDate.datetimeToFloat(d[0]+'-'+d[1]+'-'+d[2]+' '+d[3]))
-                            graph.rewrite()
-                            return
-                    messagebox.showerror('エラー', '範囲が正しくありません。')
-                    return
+        d1 = datetime.datetime.strptime(d[0]+'/'+d[1]+'/'+d[2]+'/'+d[3], '%Y/%m/%d/%H')
+        d2 = datetime.datetime.strptime(d[4]+'/'+d[5]+'/'+d[6]+'/'+d[7], '%Y/%m/%d/%H')
+        if d2 - d1 > datetime.timedelta(0):
+            # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
+            graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3], blank=span*0.3)
+            graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
+                                myDate.datetimeToFloat(d[0]+'-'+d[1]+'-'+d[2]+' '+d[3]))
+            graph.rewrite()
+            return
+        messagebox.showerror('エラー', '範囲が正しくありません。')
+        return
     messagebox.showerror('エラー', '日付が正しくありません。')
 
 
@@ -165,9 +157,9 @@ def getBarSpan():
         reformedList = readData.reform(graphDataList, barset)
         # print(reformedList)
         graph.reset()
-        locDict = {'1h':'hour', '3h':'hour', '6h':'day',
+        locDict = {'1h':'hour', '3h':'day', '6h':'day',
                 '12h':'day', '1d':'day', '1w':'month', '1m':'month'}
-        graph.init(ylim=span*24*62, locator_span=locDict[barset])
+        graph.init(ylim=span*24*62, barset=barset)
         for wl in reformedList:
             x = pd.DatetimeIndex([wl[0] + ':00:00'])
             graph.plotbar(x, wl, span*0.7)

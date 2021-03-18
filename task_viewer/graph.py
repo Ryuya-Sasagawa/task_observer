@@ -21,21 +21,44 @@ class Graph:
         self.blank = 0
         self.barwidth = 0
 
-    def init(self, ylabel='minutes', ylim=62, locator_span='hour'):
+    def init(self, ylabel='minutes', ylim=62, barset='1h'):
         self.ax.set_ylabel(ylabel)
         self.ax.set_ylim(0, ylim)
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
-        if locator_span == 'hour':
-            days = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
-            daysFmt = mdates.DateFormatter('%d/%H')
-        elif locator_span == 'day':
-            days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
-            daysFmt = mdates.DateFormatter("%Y-%m-%d")
-        elif locator_span == 'month':
-            days = mdates.MonthLocator(interval=1, tz=None)
-            daysFmt = mdates.DateFormatter("%Y-%m")
-        self.ax.xaxis.set_major_locator(days)
-        self.ax.xaxis.set_major_formatter(daysFmt)
+        barsetDict = {'1h':1, '3h':3, '6h':6, '12h':12, '1d':24, '1w':101, '1m':102}
+
+        if barsetDict[barset] == 1:
+            major = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
+        elif barsetDict[barset] == 3:
+            major = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
+        elif barsetDict[barset] == 6:
+            major = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
+        elif barsetDict[barset] == 12:
+            major = mdates.DayLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
+        elif barsetDict[barset] == 24:
+            major = mdates.DayLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.DayLocator(interval=1, tz=None)
+        elif barsetDict[barset] == 101:
+            major = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
+        elif barsetDict[barset] == 102:
+            major = mdates.MonthLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y/%m')
+            minor = mdates.MonthLocator(interval=1, tz=None)
+        self.ax.xaxis.set_major_locator(major)
+        self.ax.xaxis.set_major_formatter(majorFmt)
+        self.ax.xaxis.set_minor_locator(minor)
+
 
     def plotbar(self, x, worklist, width, per='min'):
         self.barwidth = width
@@ -68,14 +91,12 @@ class Graph:
 
     def relativeRange(self, span):
         if self.ax.get_xlim()[0] + self.barwidth + self.blank < self.ax.get_xlim()[1] + span:
-            print(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span, self.ax.get_xlim()[0] < self.ax.get_xlim()[1] + span)
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span)
-            print(self.ax.get_xlim()[0], self.ax.get_xlim()[1])
             return True
         return False
 
     def absoluteRange(self, span):
-        if span > self.barwidth + self.blank:
+        if span > 0:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[0] + span)
 
     def pack(self, master):
