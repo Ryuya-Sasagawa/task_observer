@@ -1,5 +1,6 @@
 import datetime
 import file
+import myDate
 
 class work_per_hour:
     def __init__(self, date):
@@ -14,6 +15,7 @@ class work_per_hour:
         else:
             index = [r[0] for r in self.works].index(work_name)
             self.works[index][1].join(work)
+        # print('works: ', self.works)
         self.sortworks()
 
     def getworklist(self):
@@ -26,6 +28,7 @@ class work_per_hour:
         timedelta_list = [[self.works[i][1].getdata()[0], i] for i in range(len(self.works))]
         timedelta_list = sorted(timedelta_list)
         timedelta_list.reverse()
+        # print('timeDelta: ', timedelta_list)
         sort_index = [r[1] for r in timedelta_list]
         new_works = []
         for i in sort_index:
@@ -51,15 +54,9 @@ class work:
     def getdata(self):
         return self.time, self.opperation
 
-class work_per_free(work_per_hour):
-    def __init__(self, date):
-        super(work_per_free, self).__init__(date)
 
-    def addworkList(self, worklist):
-        for i in [r[1] for r in worklist]:
-            self.addwork(i)
-# TODO: 必要になったらテストを行う
-
+def sortmethod(wph):
+    return myDate.datetimeToFloat(wph[0])
 
 def parseData(filename, password):
     wphList = []
@@ -75,7 +72,7 @@ def parseData(filename, password):
             start_hour = start.strftime('%Y-%m-%d %H')
             if start_hour not in [r[0] for r in wphList]:
                 wphList.append([start_hour, work_per_hour(start_hour)])
-                wphList = sorted(wphList)
+                wphList = sorted(wphList, key=sortmethod)
             index = [r[0] for r in wphList].index(start_hour)
             if start_hour != end.strftime('%Y-%m-%d %H'):
                 start_nextHour = datetime.datetime.strptime(start_hour, '%Y-%m-%d %H') + datetime.timedelta(hours=1)
@@ -94,35 +91,83 @@ def parseData(filename, password):
 
     return wphList
 
+def appendworks(wl, wphtime, reformedList):
+    if wphtime not in [r[0] for r in reformedList]:
+        reformedList.append([wphtime, work_per_hour(wphtime)])
+        reformedList = sorted(reformedList, key=sortmethod)
+    index = [r[0] for r in reformedList].index(wphtime)
+    # print("wl[1]: ", wl[1].getworklist())
+    for w in wl[1].getworklist():
+        # print('w: ', w[1].getdata())
+        newwork = work(w[1].getname(), w[1].getdata()[0], w[1].getdata()[1])
+        reformedList[index][1].addwork(newwork)
+    return reformedList
+
+def reform(wphList, barset, Day='Sun'):
+    barsetDict = {'1h':1, '3h':3, '6h':6, '12h':12, '1d':24, '1w':101, '1m':102}
+    reformedList = []
+    # 1wのwphtimeは、以下の手順で求める。
+    # 1, wl[0]からdatetimeを作成
+    # 2, datetimeから曜日を取得
+    # 3, datetimeより過去の一番近い「引数で取得した1週間の初めの曜日(デフォルトは日曜)」をwphtimeに代入
+    # 1mのwphtimeはwl[0]から年月だけ抽出し、その月の一日をwphtimeに代入
+    if barsetDict[barset] < 100:
+        for wl in wphList:
+            wphtime = wl[0].split(' ')[0] + ' ' + \
+                      str(int(int(wl[0].split(' ')[1]) / barsetDict[barset])*barsetDict[barset])
+            # print(wl[0], wphtime)
+            reformedList = appendworks(wl, wphtime, reformedList)
+        return reformedList
+
+    elif barsetDict[barset] == 101:
+        dayDict = {'Mon':0, 'Tue':1, 'Wed':2, 'Thu':3, 'Fri':4, 'Sat':5, 'Sun':6}
+        # 週の開始が木曜の場合
+        # datetime.weekday()   0  1  2  3  4  5  6
+        #                 +7   7  8  9 10 11 12 13
+        #  dayDict[Day]-> -3   4  5  6  7  8  9 10
+        #                 %7   4  5  6  0  1  2  3
+        for wl in wphList:
+            wphtime = datetime.datetime.strptime(wl[0], '%Y-%m-%d %H')
+            div = (wphtime.weekday() + 7 - dayDict[Day]) % 7
+            wphtime = (wphtime - datetime.timedelta(days=div)).strftime('%Y-%m-%d 0')
+            # print(wl[0], wphtime)
+            reformedList = appendworks(wl, wphtime, reformedList)
+        return reformedList
+
+    elif barsetDict[barset] == 102:
+        for wl in wphList:
+            wphtime = wl[0].split('-')[0] + '-' + wl[0].split('-')[1] + '-01 0'
+            # print(wl[0], wphtime)
+            reformedList = appendworks(wl, wphtime, reformedList)
+        return reformedList
+
 if __name__ == '__main__':
     wphList = []
     password = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-    t = file.read('../task_checker2/data/applicationLog', password)
+    t = file.read('../data/applicationLog', password)
     cmd = t.split('\n')
     # samplelist = ['n 無題 - メモ帳', 's 2021-03-10 14:07:10', 'e 2021-03-10 16:07:10', 't 0:00:00.183674', 'o 0 999 2']
     # cmd[2175:2175] = samplelist ←最後尾-1
     # print(cmd)
     for c in range(int(len(cmd) / 5)):
-        # print(cmd[c*5:c*5+5])
         name = cmd[c * 5][2:]
         start = datetime.datetime.strptime(cmd[c * 5 + 1][2:], '%Y-%m-%d %H:%M:%S')
         end = datetime.datetime.strptime(cmd[c * 5 + 2][2:], '%Y-%m-%d %H:%M:%S')
         op = list(map(int, cmd[c * 5 + 4].split()[1:]))
         while True:
-            # print([r[0] for r in wphList])
             start_hour = start.strftime('%Y-%m-%d %H')
             if start_hour not in [r[0] for r in wphList]:
                 wphList.append([start_hour, work_per_hour(start_hour)])
-                wphList = sorted(wphList)
+                wphList = sorted(wphList, key=sortmethod)
             index = [r[0] for r in wphList].index(start_hour)
             if start_hour != end.strftime('%Y-%m-%d %H'):
                 start_nextHour = datetime.datetime.strptime(start_hour, '%Y-%m-%d %H') + datetime.timedelta(hours=1)
                 time = start_nextHour - start
                 percentage = time / (end - start)
-                print(percentage, [round(n*(1-percentage)) for n in op])
-                w = work(name, time, [round(n*percentage) for n in op])
+                # print(percentage, [round(n * (1 - percentage)) for n in op])
+                w = work(name, time, [round(n * percentage) for n in op])
                 wphList[index][1].addwork(w)
-                op = [round(n*(1-percentage)) for n in op]
+                op = [round(n * (1 - percentage)) for n in op]
                 start = start_nextHour
             else:
                 time = end - start

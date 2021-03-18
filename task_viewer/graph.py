@@ -14,24 +14,61 @@ from typing import Final
 import myDate
 
 class Graph:
-    BLANK_HOUR: Final[float] = 0.01
     def __init__(self):
         self.fig = plt.Figure()
         self.ax = self.fig.add_subplot(111)
         self.init()
-        self.blank = self.BLANK_HOUR
+        self.blank = 0
+        self.barwidth = 0
 
-    def init(self):
-        self.ax.set_ylabel("minutes")
+    def init(self, ylabel='minutes', ylim=62, barset='1h'):
+        self.ax.set_ylabel(ylabel)
+        self.ax.set_ylim(0, ylim)
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
-        # days = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
-        # daysFmt = mdates.DateFormatter('%d/%H')
-        # days = mdates.DayLocator(bymonthday=None, interval=1, tz=None)
-        # daysFmt = mdates.DateFormatter("%Y-%m-%d")
-        days = mdates.MonthLocator(interval=1, tz=None)
-        daysFmt = mdates.DateFormatter("%Y-%m")
-        self.ax.xaxis.set_major_locator(days)
-        self.ax.xaxis.set_major_formatter(daysFmt)
+        barsetDict = {'1h':1, '3h':3, '6h':6, '12h':12, '1d':24, '1w':101, '1m':102}
+
+        if barsetDict[barset] == 1:
+            major = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
+        elif barsetDict[barset] == 3:
+            major = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
+        elif barsetDict[barset] == 6:
+            major = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
+            majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
+            minor = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
+        elif barsetDict[barset] == 12:
+            major = mdates.DayLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
+        elif barsetDict[barset] == 24:
+            major = mdates.DayLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.DayLocator(interval=1, tz=None)
+        elif barsetDict[barset] == 101:
+            major = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
+            majorFmt = mdates.DateFormatter('%Y\n%m/%d')
+            minor = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
+        elif barsetDict[barset] == 102:
+            major = mdates.MonthLocator(interval=1, tz=None)
+            majorFmt = mdates.DateFormatter('%Y/%m')
+            minor = mdates.MonthLocator(interval=1, tz=None)
+        self.ax.xaxis.set_major_locator(major)
+        self.ax.xaxis.set_major_formatter(majorFmt)
+        self.ax.xaxis.set_minor_locator(minor)
+
+
+    def plotbar(self, x, worklist, width, per='min'):
+        self.barwidth = width
+        perDict = {'sec':1, 'min':60, 'hour':3600}
+        base = 0
+        for w in worklist[1].getworklist():
+            # print(w[1].getdata()[0].total_seconds()/60)
+            time = w[1].getdata()[0].total_seconds() / perDict[per]
+            self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
+            base += time
 
     def reset(self):
         self.ax.clear()
@@ -44,16 +81,29 @@ class Graph:
         if self.ax.get_xlim()[0] + dig >= 0:
             self.ax.set_xlim(self.ax.get_xlim()[0] + dig, self.ax.get_xlim()[1] + dig)
 
-    def absoluteMove(self, date):
+    def absoluteMove(self, date, blank=-1):
         loc = myDate.datetimeToFloat(date)
         span = self.ax.get_xlim()[1] - self.ax.get_xlim()[0]
         if loc >= 0:
+            if blank >= 0:
+                self.blank = blank
             self.ax.set_xlim(loc - self.blank, loc+span - self.blank)
 
     def relativeRange(self, span):
-        if self.ax.get_xlim()[0] < self.ax.get_xlim()[1] + span:
+        if self.ax.get_xlim()[0] + self.barwidth + self.blank < self.ax.get_xlim()[1] + span:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span)
+            return True
+        return False
 
     def absoluteRange(self, span):
         if span > 0:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[0] + span)
+
+    def pack(self, master):
+        self.canvas = FigureCanvasTkAgg(self.fig, master=master)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
+
+    def rewrite(self):
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
