@@ -180,10 +180,6 @@ perLabel = tk.Label(barFrame, text='毎', font=12)
 # グラフ設定：横幅
 widthFrame = tk.Frame(frame, background='white', height=50)
 widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
-widthFormat = ttk.Combobox(widthFrame, state='readonly', width=5, font=12)
-widthFormat["values"] = ("12h", "day", "week", "month", "year")
-widthFormat.current(0)
-
 
 def changeRange(sp):
     if graph.relativeRange(sp*2):
@@ -232,7 +228,7 @@ graph.relativeMove(-(span*4))
 # タブ
 nb.pack(fill='both', expand=1)
 # グラフ設定
-frame.pack(fill=tk.BOTH, padx=20)
+frame.pack(fill=tk.BOTH)
 # 日時
 dateFrame.pack(side='left', expand=True)
 dateLabel.pack(side='left')
@@ -262,7 +258,6 @@ perLabel.pack(side='left')
 # 幅
 widthFrame.pack(side='left', expand=True)
 widthLabel.pack(side='left')
-widthFormat.pack(side='left')
 narrow_btn.pack(side='left')
 wide_btn.pack(side='left')
 
