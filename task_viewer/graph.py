@@ -90,6 +90,7 @@ class Graph:
                 self.blank = blank
             self.ax.set_xlim(loc - self.blank, loc+span - self.blank)
 
+    # TODO: 描画範囲を広げた時、目盛りのラベルが重ならないようにする。且つ最大限詳細までラベルを表示する
     def relativeRange(self, span):
         if self.ax.get_xlim()[0] + self.barwidth + self.blank < self.ax.get_xlim()[1] + span:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span)
