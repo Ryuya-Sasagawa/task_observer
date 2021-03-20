@@ -15,6 +15,9 @@ class fileOperator:
             pass
         self.logfile = self._readoparator(self.operatorfilename)
 
+    def getloglist(self):
+        return self.logfile
+
     def _readoparator(self, operatorfilename):
         logfile = []
         with open(operatorfilename, mode='r') as f:
@@ -28,9 +31,6 @@ class fileOperator:
                 logfile.append(d)
         return logfile
 
-    def getlogfile(self):
-        return self.logfile
-
     def _makenewlog(self, start):
         newfilename = '../data/log_' + str(len(self.logfile)+1)
         with open(newfilename, mode='wb') as f:
@@ -42,11 +42,8 @@ class fileOperator:
             f.write(end + '\n' + newfilename + ' ' + start.strftime('%Y-%m-%d-%H') + ' ')
         self.logfile = self._readoparator(self.operatorfilename)
 
-    def readlogfile(self, date):
-        # １，datetime型のdateをfor lf in logfile : lf[1]と比較する
-        # ２，初めてlf[i]<=dateになったlfを読み出す
-        # ３，読み出したデータを返す
-        pass
+    def readlogfile(self, i):
+        return file.read(self.logfile[i][0], self.password)
 
     def addlog(self, data):
         filetext = ''
