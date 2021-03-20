@@ -1,5 +1,5 @@
 import datetime
-import file
+import fileOperator
 import myDate
 
 class work_per_hour:
@@ -58,9 +58,10 @@ class work:
 def sortmethod(wph):
     return myDate.datetimeToFloat(wph[0])
 
-def parseData(filename, password):
+def parseData(i):
     wphList = []
-    t = file.read(filename, password)
+    fileoperator = fileOperator.fileOperator()
+    t = fileoperator.readlogfile(i)
     cmd = t.split('\n')
 
     for c in range(int(len(cmd) / 5)):
@@ -144,7 +145,8 @@ def reform(wphList, barset, Day='Sun'):
 if __name__ == '__main__':
     wphList = []
     password = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-    t = file.read('../data/applicationLog', password)
+    t = fileOperator.fileOperator().readlogfile(0)
+    # t = file.read('../data/log_1', password)
     cmd = t.split('\n')
     # samplelist = ['n 無題 - メモ帳', 's 2021-03-10 14:07:10', 'e 2021-03-10 16:07:10', 't 0:00:00.183674', 'o 0 999 2']
     # cmd[2175:2175] = samplelist ←最後尾-1

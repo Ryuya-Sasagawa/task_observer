@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 # 自作プログラム
-import readData, graph, myDate
+import readData, graph, myDate, fileOperator
 
 # -----定数-----
 HOUR_LENGTH: Final[float] = 1 / 24
@@ -23,7 +23,7 @@ WEEK_LENGTH: Final[int] = 7
 MONTH_LENGTH: Final[int] = 30
 YEAR_LENGTH: Final[int] = 365
 PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-FILEPATH: Final[str] = '../data/applicationLog'
+FILEPATH: Final[str] = '../data/log_1'
 
 # -----初期設定-----
 span = HOUR_LENGTH
@@ -203,7 +203,9 @@ right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
 
 # グラフ
 graph = graph.Graph()
-graphDataList = readData.parseData(FILEPATH, PASSWORD)
+fileoperator = fileOperator.fileOperator()
+latest = fileoperator.searchlogfile(datetime.datetime.now())
+graphDataList = readData.parseData(latest)
 
 for wl in graphDataList:  # graphDataListをグラフに描画
     # print(wl[0])
