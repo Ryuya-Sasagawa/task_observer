@@ -49,18 +49,18 @@ class fileOperator:
         filetext = ''
         if os.path.getsize(self.logfile[-1][0]) > 16:
             filetext = file.read(self.logfile[-1][0], self.password)
-        print(filetext)
+        # print(filetext)
         if len(filetext) >= 300000:
             print(data.split('\n')[1][2:])
             self._makenewlog(datetime.datetime.strptime(data.split('\n')[1][2:], '%Y-%m-%d %H:%M:%S'))
             filetext = ''
-        file.write(self.logfile[-1][0], self.password, filetext+data)
+        file.write(self.logfile[-1][0], self.password, filetext + data)
 
 
 if __name__ == '__main__':
     fo = fileOperator()
     # print(fo.getlogfile())
-    fo.addlog("n test\ns 2021-03-21 12:00:00\ne 2021-03-21 14:23:45\nt\no\n")
+    # fo.addlog("n test\ns 2021-03-21 12:00:00\ne 2021-03-21 14:23:45\nt\no\n")
     # print(fo.getlogfile())
 
 
