@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.dates as mdates
 # 自作プログラム
-import readData, graph, myDate
+import readData, graph, myDate, fileOperator
 
 # -----定数-----
 HOUR_LENGTH: Final[float] = 1 / 24
@@ -23,7 +23,7 @@ WEEK_LENGTH: Final[int] = 7
 MONTH_LENGTH: Final[int] = 30
 YEAR_LENGTH: Final[int] = 365
 PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-FILEPATH: Final[str] = '../data/applicationLog'
+FILEPATH: Final[str] = '../data/log_1'
 
 # -----初期設定-----
 span = HOUR_LENGTH
@@ -180,10 +180,6 @@ perLabel = tk.Label(barFrame, text='毎', font=12)
 # グラフ設定：横幅
 widthFrame = tk.Frame(frame, background='white', height=50)
 widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
-widthFormat = ttk.Combobox(widthFrame, state='readonly', width=5, font=12)
-widthFormat["values"] = ("12h", "day", "week", "month", "year")
-widthFormat.current(0)
-
 
 def changeRange(sp):
     if graph.relativeRange(sp*2):
@@ -207,7 +203,9 @@ right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
 
 # グラフ
 graph = graph.Graph()
-graphDataList = readData.parseData(FILEPATH, PASSWORD)
+fileoperator = fileOperator.fileOperator()
+latest = fileoperator.searchlogfile(datetime.datetime.now())
+graphDataList = readData.parseData(latest)
 
 for wl in graphDataList:  # graphDataListをグラフに描画
     # print(wl[0])
@@ -232,7 +230,7 @@ graph.relativeMove(-(span*4))
 # タブ
 nb.pack(fill='both', expand=1)
 # グラフ設定
-frame.pack(fill=tk.BOTH, padx=20)
+frame.pack(fill=tk.BOTH)
 # 日時
 dateFrame.pack(side='left', expand=True)
 dateLabel.pack(side='left')
@@ -262,7 +260,6 @@ perLabel.pack(side='left')
 # 幅
 widthFrame.pack(side='left', expand=True)
 widthLabel.pack(side='left')
-widthFormat.pack(side='left')
 narrow_btn.pack(side='left')
 wide_btn.pack(side='left')
 

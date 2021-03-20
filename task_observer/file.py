@@ -36,9 +36,9 @@ def write(path, password, data):
 
 # debug
 if __name__ == '__main__':
-    password = 'testtesttest'
-    t = read('../data/applicationLog', password)
-    print(t)
+    password = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
+    t = read('../data/log_1', password)
+    print(t.split('\n'))
     # write('data/aesTest6', password, 'aiueoあいうえおアイウエオAIUEO12345')
 
 

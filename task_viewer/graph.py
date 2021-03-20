@@ -25,40 +25,41 @@ class Graph:
         self.ax.set_ylabel(ylabel)
         self.ax.set_ylim(0, ylim)
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
-        barsetDict = {'1h':1, '3h':3, '6h':6, '12h':12, '1d':24, '1w':101, '1m':102}
+        barsetDict = {'1h': 1, '3h': 2, '6h': 3, '12h': 4, '1d': 5, '1w': 6, '1m': 7}
+        self._locator(barsetDict[barset])
 
-        if barsetDict[barset] == 1:
+    def _locator(self, type):
+        if type == 1:
             major = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
             majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
             minor = mdates.HourLocator(byhour=range(0, 24, 1), tz=None)
-        elif barsetDict[barset] == 3:
+        elif type == 2:
             major = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
             majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
             minor = mdates.HourLocator(byhour=range(0, 24, 3), tz=None)
-        elif barsetDict[barset] == 6:
+        elif type == 3:
             major = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
             majorFmt = mdates.DateFormatter('%m/%d\n%H:00')
             minor = mdates.HourLocator(byhour=range(0, 24, 6), tz=None)
-        elif barsetDict[barset] == 12:
+        elif type == 4:
             major = mdates.DayLocator(interval=1, tz=None)
             majorFmt = mdates.DateFormatter('%Y\n%m/%d')
             minor = mdates.HourLocator(byhour=range(0, 24, 12), tz=None)
-        elif barsetDict[barset] == 24:
+        elif type == 5:
             major = mdates.DayLocator(interval=1, tz=None)
             majorFmt = mdates.DateFormatter('%Y\n%m/%d')
             minor = mdates.DayLocator(interval=1, tz=None)
-        elif barsetDict[barset] == 101:
+        elif type == 6:
             major = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
             majorFmt = mdates.DateFormatter('%Y\n%m/%d')
             minor = mdates.WeekdayLocator(byweekday=mdates.SUNDAY, tz=None)
-        elif barsetDict[barset] == 102:
+        elif type == 7:
             major = mdates.MonthLocator(interval=1, tz=None)
             majorFmt = mdates.DateFormatter('%Y/%m')
             minor = mdates.MonthLocator(interval=1, tz=None)
         self.ax.xaxis.set_major_locator(major)
         self.ax.xaxis.set_major_formatter(majorFmt)
         self.ax.xaxis.set_minor_locator(minor)
-
 
     def plotbar(self, x, worklist, width, per='min'):
         self.barwidth = width
@@ -89,6 +90,7 @@ class Graph:
                 self.blank = blank
             self.ax.set_xlim(loc - self.blank, loc+span - self.blank)
 
+    # TODO: 描画範囲を広げた時、目盛りのラベルが重ならないようにする。且つ最大限詳細までラベルを表示する
     def relativeRange(self, span):
         if self.ax.get_xlim()[0] + self.barwidth + self.blank < self.ax.get_xlim()[1] + span:
             self.ax.set_xlim(self.ax.get_xlim()[0], self.ax.get_xlim()[1] + span)

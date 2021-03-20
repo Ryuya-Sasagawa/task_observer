@@ -4,12 +4,12 @@ import time
 import datetime
 from typing import Final
 import inputDevice
-import file
+import fileOperator
 
 # 定数
-LOGFILE_NAME: Final[str] = '../data/applicationLog'
+# LOGFILE_NAME: Final[str] = '../data/log_1'
 LOGFILE_WRITE_TIMING: Final[int] = 100
-PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
+# PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
 
 
 def getActiveWindowTitle():
@@ -22,6 +22,7 @@ if __name__ == '__main__':
     logBuffer = ''  # アプリ名などを取得してからファイルに保存するまでに一時的に保管するバッファ
     lb_lineCount = 0  # logBufferをファイルに書き込むタイミングを管理する変数
     lb_writeTiming = LOGFILE_WRITE_TIMING  # logBufferをファイルに書き込むタイミングを管理する変数
+    fileoperator = fileOperator.fileOperator()
     bufWindowTitle = ''  # アプリ名(ウィンドウタイトル)を一時的に保管するバッファ
     now = datetime.datetime.fromtimestamp(time.time())  # 現在時刻
     mouse = inputDevice.Mouse()  # マウスの操作(クリックとスクロール)を監視するクラス
@@ -50,7 +51,8 @@ if __name__ == '__main__':
                     # アプリの使用ログを一定数スタックしたら
                     if lb_lineCount == lb_writeTiming:
                         # AESで暗号化して書き込み
-                        file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
+                        fileoperator.addlog(logBuffer)
+                        # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
                         # print('write down to file')  # debug
                         lb_lineCount = 0
                         logBuffer = ''
@@ -72,7 +74,8 @@ if __name__ == '__main__':
         logBuffer += 't ' + str(temp - now) + '\n'
         logBuffer += 'o ' + str(mouse.getClick()) + " " + \
                      str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n'
-        file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
+        fileoperator.addlog(logBuffer)
+        # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
         mouse.stop()
         keyboard.reset()
         sys.exit(0)  # main.pyの終了
