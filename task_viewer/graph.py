@@ -14,12 +14,13 @@ from typing import Final
 import myDate
 
 class Graph:
-    def __init__(self):
+    def __init__(self, onclick):
         self.fig = plt.Figure()
         self.ax = self.fig.add_subplot(111)
         self.init()
         self.blank = 0
         self.barwidth = 0
+        self.onclick = onclick
 
     def init(self, ylabel='minutes', ylim=62, barset='1h'):
         self.ax.set_ylabel(ylabel)
@@ -27,6 +28,10 @@ class Graph:
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
         barsetDict = {'1h': 1, '3h': 2, '6h': 3, '12h': 4, '1d': 5, '1w': 6, '1m': 7}
         self._locator(barsetDict[barset])
+        self.annot = self.ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
+                                      bbox=dict(boxstyle="round", fc="w"), arrowprops=dict(arrowstyle="->"),
+                                      fontname="MS Gothic")
+        self.annot.set_visible(False)
 
     def _locator(self, type):
         if type == 1:
@@ -60,6 +65,15 @@ class Graph:
         self.ax.xaxis.set_major_locator(major)
         self.ax.xaxis.set_major_formatter(majorFmt)
         self.ax.xaxis.set_minor_locator(minor)
+
+    def annotation(self, text, x, y):
+        print(text, x, y)
+        self.annot.set_text(text)
+        self.annot.xy = (x,y)
+        self.annot.set_visible(True)
+
+    def hideannot(self):
+        self.annot.set_visible(False)
 
     def plotbar(self, x, worklist, width, per='min'):
         self.barwidth = width
@@ -103,9 +117,11 @@ class Graph:
 
     def pack(self, master):
         self.canvas = FigureCanvasTkAgg(self.fig, master=master)
+        self.canvas.mpl_connect("motion_notify_event", self.onclick)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
 
     def rewrite(self):
+        self.canvas.mpl_connect("motion_notify_event", self.onclick)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)

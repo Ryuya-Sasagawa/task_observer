@@ -150,7 +150,7 @@ def getBarSpan():
     spanDict = {'1h':HOUR_LENGTH, '3h':HOUR_LENGTH*3, '6h':HOUR_LENGTH*6,
                 '12h':HALFDAY_LENGTH, '1d':DAY_LENGTH, '1w':WEEK_LENGTH, '1m':MONTH_LENGTH}
     # print(barFormat.get())
-    global barset, span
+    global barset, span, reformedList
     if barset != barFormat.get():
         barset = barFormat.get()
         span = spanDict[barset]
@@ -202,12 +202,37 @@ left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-span))
 right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
 
 # グラフ
-graph = graph.Graph()
+def onclick(event):
+    # print(event)
+    if event.xdata is not None and event.ydata is not None:
+        # print(event.xdata, event.ydata)
+        for wl in reformedList:
+            x = myDate.datetimeToFloat(wl[0])
+            # print(x)
+            if x < event.xdata < x + span*0.7:
+                # print(event.xdata, event.ydata)
+                l = [w[1] for w in wl[1].getworklist()]
+                s = datetime.timedelta(0)
+                for t in l:
+                    s += t.getdata()[0]
+                    if datetime.timedelta(minutes=event.ydata) < s:
+                        # print(event.xdata, event.ydata, t.getname(), t.getdata())
+                        x += span*0.35
+                        s = (s.seconds - t.getdata()[0].seconds/2) / 60
+                        graph.annotation(t.getname(), x, s)
+                        graph.rewrite()
+                        break
+                return
+    graph.hideannot()
+    graph.rewrite()
+
+
+graph = graph.Graph(lambda event: onclick(event))
 fileoperator = fileOperator.fileOperator()
 latest = fileoperator.searchlogfile(datetime.datetime.now())
 graphDataList = readData.parseData(latest)
-
-for wl in graphDataList:  # graphDataListをグラフに描画
+reformedList = readData.reform(graphDataList, '1h')
+for wl in reformedList:  # graphDataListをグラフに描画
     # print(wl[0])
     x = pd.DatetimeIndex([wl[0] + ':00:00'])
     graph.plotbar(x, wl, span*0.7)
