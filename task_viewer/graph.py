@@ -67,7 +67,7 @@ class Graph:
         self.ax.xaxis.set_minor_locator(minor)
 
     def annotation(self, text, x, y):
-        print(text, x, y)
+        # print(text, x, y)
         self.annot.set_text(text)
         self.annot.xy = (x,y)
         self.annot.set_visible(True)

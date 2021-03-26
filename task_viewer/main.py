@@ -240,16 +240,90 @@ for wl in reformedList:  # graphDataListをグラフに描画
 graph.absoluteRange(span*8)
 graph.absoluteMove(graphDataList[-1][0], blank=span*0.3)
 graph.relativeMove(-(span*4))
-# reformedlist = readData.reform(graphDataList, '1m')
-# for wl in reformedlist:
-#     print(wl[0])
-#     for w in wl[1].getworklist():
-#         print('  ', w[0], w[1].getdata())
-#
+
 # for wl in graphDataList:
 #     print(wl[0])
 #     for w in wl[1].getworklist():
 #         print('  ', w[0], w[1].getdata())
+
+# 表タブ
+# 設定
+settingTableFrame = tk.Frame(tableTab, background='gray', height=50)
+tdateFrame = tk.Frame(settingTableFrame, background='white', height=50)
+tdateLabel = tk.Label(tdateFrame, text='日時', font=12)
+
+
+# グラフ設定：日時：from：年
+tyear = tk.Entry(tdateFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+slashLabel5 = tk.Label(tdateFrame, text='/', font=12)
+tyear.bind('<Return>', lambda event: enterevent(tmonth))
+# グラフ設定：日時：from：月
+tmonth = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+slashLabel6 = tk.Label(tdateFrame, text='/', font=12)
+tmonth.bind('<Return>', lambda event: enterevent(tday))
+# グラフ設定：日時：from：日
+tday = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+minusLabel3 = tk.Label(tdateFrame, text='-', font=12)
+tday.bind('<Return>', lambda event: enterevent(thour))
+# グラフ設定：日時：from：時
+thour = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+restLabel3 = tk.Label(tdateFrame, text=':00:00', font=12)
+thour.bind('<Return>', lambda event: enterevent(tdate_btn))
+# グラフ設定：日時：ボタン
+def tmove():
+    d = tyear.get(), tmonth.get(), tday.get(), thour.get()
+    flag = True
+    for i in d:
+        if not i.isdecimal():
+            flag = False
+
+    if flag is True:
+        d = datetime.datetime.strptime(d[0]+'/'+d[1]+'/'+d[2]+'/'+d[3], '%Y/%m/%d/%H')
+        if datetime.datetime(2020, 1, 1, 0) < d < datetime.datetime(2300, 1, 1, 0):
+            last = len(table.get_children()) # = int(len(cmd)/5)
+            loc = last
+            for i in range(len(table.get_children())):
+                s = datetime.datetime.strptime(cmd[i*5+1][2:], '%Y-%m-%d %H:%M:%S')
+                if s > d:
+                    loc = i
+                    break
+            table.yview_moveto(loc / last)
+            return
+        messagebox.showerror('エラー', '範囲が正しくありません。')
+        return
+    messagebox.showerror('エラー', '日付が正しくありません。')
+
+
+tdate_btn = tk.Button(master=tdateFrame, text='MOVE', command=tmove)
+tdate_btn.bind('<Return>', lambda event: tmove())
+
+# 表
+tableFrame = tk.Frame(tableTab, background='white', )
+table = ttk.Treeview(tableFrame, height=30)
+table['show'] = "headings"
+table['columns'] = (1, 2, 3, 4, 5)
+table.heading(1,text="名前")
+table.heading(2,text="開始時刻")
+table.heading(3,text="終了時刻")
+table.heading(4,text="経過時間")
+table.heading(5,text="クリック/スクロール/キー入力")
+table.column(2, width=130)
+table.column(3, width=130)
+table.column(4, width=80)
+table.column(5, width=150)
+
+cmd = readData.openfile(latest)
+for i in range(int(len(cmd)/5)):
+    name = cmd[i*5][2:]
+    s = datetime.datetime.strptime(cmd[i*5+1][2:], '%Y-%m-%d %H:%M:%S')
+    e = datetime.datetime.strptime(cmd[i*5+2][2:], '%Y-%m-%d %H:%M:%S')
+    o = cmd[i*5+4][2:].split(' ')
+    o = o[0]+' / '+o[1]+' / '+o[2]
+    table.insert("", "end", values=(name, s, e, e-s, o))
+
+
+scroll = tk.Scrollbar(tableFrame, orient=tk.VERTICAL, command=table.yview)
+table["yscrollcommand"] = scroll.set
 
 # -----レイアウト生成-----
 # タブ
@@ -294,6 +368,24 @@ left_btn.pack(fill='x', padx=20, side='left')
 graph.pack(graphTab)
 # 移動ボタン(右)
 right_btn.pack(fill='x', padx=20, side='right')
+
+# 表
+settingTableFrame.pack(fill=tk.BOTH)
+tdateFrame.pack(side='left', expand=True)
+tdateLabel.pack(side='left')
+tyear.pack(side='left')
+slashLabel5.pack(side='left')
+tmonth.pack(side='left')
+slashLabel6.pack(side='left')
+tday.pack(side='left')
+minusLabel3.pack(side='left')
+thour.pack(side='left')
+restLabel3.pack(side='left')
+tdate_btn.pack(side='left')
+
+tableFrame.pack(fill=tk.BOTH)
+scroll.pack(side='right', fill="y")
+table.pack(fill=tk.BOTH)
 
 # 実行
 root.mainloop()
