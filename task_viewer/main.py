@@ -28,6 +28,7 @@ FILEPATH: Final[str] = '../data/log_1'
 # -----初期設定-----
 span = HOUR_LENGTH
 barset = '1h'
+border = [0, 0, 0, 0]
 
 # -----ウィンドウ設定-----
 root = tk.Tk()
@@ -44,7 +45,7 @@ nb.add(graphTab, text='グラフ')
 nb.add(tableTab, text='表')
 # グラフ設定
 frame = tk.Frame(graphTab, background='gray', height=50)
-
+frame2 = tk.Frame(graphTab, background='gray', height=50)
 # グラフ設定：日時
 dateFrame = tk.Frame(frame, background='white', height=50)
 dateLabel = tk.Label(dateFrame, text='日時', font=12)
@@ -162,7 +163,7 @@ def getBarSpan():
         graph.init(ylim=span*24*62, barset=barset)
         for wl in reformedList:
             x = pd.DatetimeIndex([wl[0] + ':00:00'])
-            graph.plotbar(x, wl, span*0.7)
+            graph.plotbar(x, wl, span*0.7, border=border)
         # print(reformedList[-1])
         graph.absoluteRange(span * 8)
         graph.absoluteMove(reformedList[-1][0], blank=span*0.3)
@@ -179,7 +180,7 @@ perLabel = tk.Label(barFrame, text='毎', font=12)
 
 # グラフ設定：横幅
 widthFrame = tk.Frame(frame, background='white', height=50)
-widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
+# widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
 
 def changeRange(sp):
     if graph.relativeRange(sp*2):
@@ -189,6 +190,48 @@ def changeRange(sp):
 # TODO:矢印は画像に差し替える
 narrow_btn = tk.Button(master=widthFrame, text='→←', command=lambda: changeRange(-span))
 wide_btn = tk.Button(master=widthFrame, text='←→', command=lambda: changeRange(span))
+
+# グラフ設定：足切りライン
+borderFrame = tk.Frame(frame2, background='white', height=50)
+
+borderLabel = tk.Label(borderFrame, text='非表示設定 クリック数:', font=12)
+click = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+click.bind('<Return>', lambda event: enterevent(scrollnum))
+
+scrollLabel = tk.Label(borderFrame, text=' スクロール:', font=12)
+scrollnum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+scrollnum.bind('<Return>', lambda event: enterevent(keynum))
+
+keyLabel = tk.Label(borderFrame, text=' キー入力:', font=12)
+keynum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+keynum.bind('<Return>', lambda event: enterevent(timenum))
+
+timeLabel = tk.Label(borderFrame, text=' 作業時間:', font=12)
+timenum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+timenum.bind('<Return>', lambda event: enterevent(border_btn))
+
+def makeborder():
+    d = [timenum.get(), click.get(), scrollnum.get(), keynum.get()]
+    for i in range(len(d)):
+        if len(d[i]) == 0:
+            d[i] = '0'
+    global border
+    border = list(map(int, d))
+    graph.reset()
+    graph.init(ylim=span * 24 * 62, barset=barset)
+    for wl in reformedList:
+        x = pd.DatetimeIndex([wl[0] + ':00:00'])
+        graph.plotbar(x, wl, span * 0.7, border=border)
+    # print(reformedList[-1])
+    graph.absoluteRange(span * 8)
+    graph.absoluteMove(reformedList[-1][0], blank=span * 0.3)
+    graph.relativeMove(-(span * 4))
+    graph.rewrite()
+
+
+
+border_btn = tk.Button(master=borderFrame, text='RUN', command=makeborder)
+border_btn.bind('<Return>', lambda event: makeborder())
 
 
 # グラフ設定：移動ボタン
@@ -214,8 +257,10 @@ def onclick(event):
                 l = [w[1] for w in wl[1].getworklist()]
                 s = datetime.timedelta(0)
                 for t in l:
-                    s += t.getdata()[0]
-                    if datetime.timedelta(minutes=event.ydata) < s:
+                    time, op = t.getdata()
+                    s += time
+                    if datetime.timedelta(minutes=event.ydata) < s and border[0] <= int(time.total_seconds()/60) and \
+                            border[1] <= op[0] and border[2] <= op[1] and border[3] <= op[2]:
                         # print(event.xdata, event.ydata, t.getname(), t.getdata())
                         x += span*0.35
                         s = (s.seconds - t.getdata()[0].seconds/2) / 60
@@ -330,6 +375,7 @@ table["yscrollcommand"] = scroll.set
 nb.pack(fill='both', expand=1)
 # グラフ設定
 frame.pack(fill=tk.BOTH)
+frame2.pack(fill=tk.BOTH)
 # 日時
 dateFrame.pack(side='left', expand=True)
 dateLabel.pack(side='left')
@@ -358,9 +404,19 @@ barFormat.pack(side='left')
 perLabel.pack(side='left')
 # 幅
 widthFrame.pack(side='left', expand=True)
-widthLabel.pack(side='left')
 narrow_btn.pack(side='left')
 wide_btn.pack(side='left')
+# 足切り
+borderFrame.pack(side='left', expand=True)
+borderLabel.pack(side='left')
+click.pack(side='left')
+scrollLabel.pack(side='left')
+scrollnum.pack(side='left')
+keyLabel.pack(side='left')
+keynum.pack(side='left')
+timeLabel.pack(side='left')
+timenum.pack(side='left')
+border_btn.pack(side='left')
 
 # 移動ボタン(左)
 left_btn.pack(fill='x', padx=20, side='left')

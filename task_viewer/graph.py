@@ -75,15 +75,21 @@ class Graph:
     def hideannot(self):
         self.annot.set_visible(False)
 
-    def plotbar(self, x, worklist, width, per='min'):
+    def plotbar(self, x, worklist, width, per='min', border=[0, 0, 0, 0]):
         self.barwidth = width
         perDict = {'sec':1, 'min':60, 'hour':3600}
         base = 0
         for w in worklist[1].getworklist():
             # print(w[1].getdata()[0].total_seconds()/60)
-            time = w[1].getdata()[0].total_seconds() / perDict[per]
-            self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
-            base += time
+            time, op = w[1].getdata()
+            time = time.total_seconds() / perDict[per]
+            mul = 60/ time if time > 0 else 1
+            op[0], op[1], op[2] = op[0]*mul, op[1]*mul, op[2]*mul
+            if border[0] <= time and border[1] <= op[0] and \
+                    border[2] <= op[1] and border[3] <= op[2]:
+                self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
+                base += time
+
 
     def reset(self):
         self.ax.clear()
