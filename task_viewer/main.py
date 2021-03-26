@@ -30,18 +30,11 @@ span = HOUR_LENGTH
 barset = '1h'
 border = [0, 0, 0, 0]
 
-
 # -----ウィンドウ設定-----
 root = tk.Tk()
 root.title('Task Checker')
 root.geometry("800x600")
 root.minsize(width=800, height=600)
-
-# -----画像-----
-kakudai = tk.PhotoImage(file="img/kakudai.png").subsample(12, 12)
-shukushou = tk.PhotoImage(file="img/shukushou.png").subsample(12, 12)
-right = tk.PhotoImage(file="img/right.png").subsample(12, 12)
-left = tk.PhotoImage(file="img/left.png").subsample(12, 12)
 
 # -----パーツ設定-----
 # タブ
@@ -51,10 +44,10 @@ tableTab = tk.Frame(nb)
 nb.add(graphTab, text='グラフ')
 nb.add(tableTab, text='表')
 # グラフ設定
-frame = tk.Frame(graphTab, height=50)
-frame2 = tk.Frame(graphTab, height=50)
+frame = tk.Frame(graphTab, background='gray', height=50)
+frame2 = tk.Frame(graphTab, background='gray', height=50)
 # グラフ設定：日時
-dateFrame = tk.Frame(frame, height=50)
+dateFrame = tk.Frame(frame, background='white', height=50)
 dateLabel = tk.Label(dateFrame, text='日時', font=12)
 
 
@@ -124,7 +117,7 @@ def move():
     if flag is True:
         d1 = datetime.datetime.strptime(d[0]+'/'+d[1]+'/'+d[2]+'/'+d[3], '%Y/%m/%d/%H')
         d2 = datetime.datetime.strptime(d[4]+'/'+d[5]+'/'+d[6]+'/'+d[7], '%Y/%m/%d/%H')
-        if datetime.timedelta(0) < d2 - d1:
+        if d2 - d1 > datetime.timedelta(0):
             # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
             graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3], blank=span*0.3)
             graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
@@ -140,7 +133,7 @@ date_btn = tk.Button(master=dateFrame, text='MOVE', command=move)
 date_btn.bind('<Return>', lambda event: move())
 
 # グラフ設定：棒グラフ
-barFrame = tk.Frame(frame, height=50)
+barFrame = tk.Frame(frame, background='white', height=50)
 barLabel = tk.Label(barFrame, text='棒グラフ', font=12)
 
 # 一本の棒グラフで表す期間を変更する関数
@@ -186,7 +179,7 @@ barFormat.current(0)
 perLabel = tk.Label(barFrame, text='毎', font=12)
 
 # グラフ設定：横幅
-widthFrame = tk.Frame(frame, height=50)
+widthFrame = tk.Frame(frame, background='white', height=50)
 # widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
 
 def changeRange(sp):
@@ -195,11 +188,11 @@ def changeRange(sp):
     graph.rewrite()
 
 # TODO:矢印は画像に差し替える
-narrow_btn = tk.Button(master=widthFrame, image=kakudai, command=lambda: changeRange(-span))
-wide_btn = tk.Button(master=widthFrame, image=shukushou, command=lambda: changeRange(span))
+narrow_btn = tk.Button(master=widthFrame, text='→←', command=lambda: changeRange(-span))
+wide_btn = tk.Button(master=widthFrame, text='←→', command=lambda: changeRange(span))
 
 # グラフ設定：足切りライン
-borderFrame = tk.Frame(frame2, height=50)
+borderFrame = tk.Frame(frame2, background='white', height=50)
 
 borderLabel = tk.Label(borderFrame, text='非表示設定 クリック数:', font=12)
 click = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
@@ -248,8 +241,8 @@ def locate(sp):
     graph.rewrite()
 
 
-left_btn = tk.Button(master=graphTab, image=left, command=lambda: locate(-span))
-right_btn = tk.Button(master=graphTab, image=right, command=lambda: locate(span))
+left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-span))
+right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
 
 # グラフ
 def onclick(event):
@@ -300,8 +293,8 @@ graph.relativeMove(-(span*4))
 
 # 表タブ
 # 設定
-settingTableFrame = tk.Frame(tableTab, height=50)
-tdateFrame = tk.Frame(settingTableFrame, height=50)
+settingTableFrame = tk.Frame(tableTab, background='gray', height=50)
+tdateFrame = tk.Frame(settingTableFrame, background='white', height=50)
 tdateLabel = tk.Label(tdateFrame, text='日時', font=12)
 
 
@@ -350,7 +343,7 @@ tdate_btn = tk.Button(master=tdateFrame, text='MOVE', command=tmove)
 tdate_btn.bind('<Return>', lambda event: tmove())
 
 # 表
-tableFrame = tk.Frame(tableTab)
+tableFrame = tk.Frame(tableTab, background='white', )
 table = ttk.Treeview(tableFrame, height=30)
 table['show'] = "headings"
 table['columns'] = (1, 2, 3, 4, 5)
