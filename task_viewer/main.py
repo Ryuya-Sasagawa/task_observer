@@ -28,12 +28,20 @@ FILEPATH: Final[str] = '../data/log_1'
 # -----初期設定-----
 span = HOUR_LENGTH
 barset = '1h'
+border = [0, 0, 0, 0]
+
 
 # -----ウィンドウ設定-----
 root = tk.Tk()
 root.title('Task Checker')
 root.geometry("800x600")
 root.minsize(width=800, height=600)
+
+# -----画像-----
+kakudai = tk.PhotoImage(file="img/kakudai.png").subsample(12, 12)
+shukushou = tk.PhotoImage(file="img/shukushou.png").subsample(12, 12)
+right = tk.PhotoImage(file="img/right.png").subsample(12, 12)
+left = tk.PhotoImage(file="img/left.png").subsample(12, 12)
 
 # -----パーツ設定-----
 # タブ
@@ -43,10 +51,10 @@ tableTab = tk.Frame(nb)
 nb.add(graphTab, text='グラフ')
 nb.add(tableTab, text='表')
 # グラフ設定
-frame = tk.Frame(graphTab, background='gray', height=50)
-
+frame = tk.Frame(graphTab, height=50)
+frame2 = tk.Frame(graphTab, height=50)
 # グラフ設定：日時
-dateFrame = tk.Frame(frame, background='white', height=50)
+dateFrame = tk.Frame(frame, height=50)
 dateLabel = tk.Label(dateFrame, text='日時', font=12)
 
 
@@ -116,7 +124,7 @@ def move():
     if flag is True:
         d1 = datetime.datetime.strptime(d[0]+'/'+d[1]+'/'+d[2]+'/'+d[3], '%Y/%m/%d/%H')
         d2 = datetime.datetime.strptime(d[4]+'/'+d[5]+'/'+d[6]+'/'+d[7], '%Y/%m/%d/%H')
-        if d2 - d1 > datetime.timedelta(0):
+        if datetime.timedelta(0) < d2 - d1:
             # print(year.get() + '/' + month.get() + '/' + day.get() + '-' + hour.get() + ':00:00')
             graph.absoluteMove(d[0] + '-' + d[1] + '-' + d[2] + ' ' + d[3], blank=span*0.3)
             graph.absoluteRange(myDate.datetimeToFloat(d[4]+'-'+d[5]+'-'+d[6]+' '+d[7]) -
@@ -132,7 +140,7 @@ date_btn = tk.Button(master=dateFrame, text='MOVE', command=move)
 date_btn.bind('<Return>', lambda event: move())
 
 # グラフ設定：棒グラフ
-barFrame = tk.Frame(frame, background='white', height=50)
+barFrame = tk.Frame(frame, height=50)
 barLabel = tk.Label(barFrame, text='棒グラフ', font=12)
 
 # 一本の棒グラフで表す期間を変更する関数
@@ -150,7 +158,7 @@ def getBarSpan():
     spanDict = {'1h':HOUR_LENGTH, '3h':HOUR_LENGTH*3, '6h':HOUR_LENGTH*6,
                 '12h':HALFDAY_LENGTH, '1d':DAY_LENGTH, '1w':WEEK_LENGTH, '1m':MONTH_LENGTH}
     # print(barFormat.get())
-    global barset, span
+    global barset, span, reformedList
     if barset != barFormat.get():
         barset = barFormat.get()
         span = spanDict[barset]
@@ -162,7 +170,7 @@ def getBarSpan():
         graph.init(ylim=span*24*62, barset=barset)
         for wl in reformedList:
             x = pd.DatetimeIndex([wl[0] + ':00:00'])
-            graph.plotbar(x, wl, span*0.7)
+            graph.plotbar(x, wl, span*0.7, border=border)
         # print(reformedList[-1])
         graph.absoluteRange(span * 8)
         graph.absoluteMove(reformedList[-1][0], blank=span*0.3)
@@ -178,8 +186,8 @@ barFormat.current(0)
 perLabel = tk.Label(barFrame, text='毎', font=12)
 
 # グラフ設定：横幅
-widthFrame = tk.Frame(frame, background='white', height=50)
-widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
+widthFrame = tk.Frame(frame, height=50)
+# widthLabel = tk.Label(widthFrame, text='グラフの幅', font=12)
 
 def changeRange(sp):
     if graph.relativeRange(sp*2):
@@ -187,8 +195,50 @@ def changeRange(sp):
     graph.rewrite()
 
 # TODO:矢印は画像に差し替える
-narrow_btn = tk.Button(master=widthFrame, text='→←', command=lambda: changeRange(-span))
-wide_btn = tk.Button(master=widthFrame, text='←→', command=lambda: changeRange(span))
+narrow_btn = tk.Button(master=widthFrame, image=kakudai, command=lambda: changeRange(-span))
+wide_btn = tk.Button(master=widthFrame, image=shukushou, command=lambda: changeRange(span))
+
+# グラフ設定：足切りライン
+borderFrame = tk.Frame(frame2, height=50)
+
+borderLabel = tk.Label(borderFrame, text='非表示設定 クリック数:', font=12)
+click = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+click.bind('<Return>', lambda event: enterevent(scrollnum))
+
+scrollLabel = tk.Label(borderFrame, text=' スクロール:', font=12)
+scrollnum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+scrollnum.bind('<Return>', lambda event: enterevent(keynum))
+
+keyLabel = tk.Label(borderFrame, text=' キー入力:', font=12)
+keynum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+keynum.bind('<Return>', lambda event: enterevent(timenum))
+
+timeLabel = tk.Label(borderFrame, text=' 作業時間:', font=12)
+timenum = tk.Entry(borderFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+timenum.bind('<Return>', lambda event: enterevent(border_btn))
+
+def makeborder():
+    d = [timenum.get(), click.get(), scrollnum.get(), keynum.get()]
+    for i in range(len(d)):
+        if len(d[i]) == 0:
+            d[i] = '0'
+    global border
+    border = list(map(int, d))
+    graph.reset()
+    graph.init(ylim=span * 24 * 62, barset=barset)
+    for wl in reformedList:
+        x = pd.DatetimeIndex([wl[0] + ':00:00'])
+        graph.plotbar(x, wl, span * 0.7, border=border)
+    # print(reformedList[-1])
+    graph.absoluteRange(span * 8)
+    graph.absoluteMove(reformedList[-1][0], blank=span * 0.3)
+    graph.relativeMove(-(span * 4))
+    graph.rewrite()
+
+
+
+border_btn = tk.Button(master=borderFrame, text='RUN', command=makeborder)
+border_btn.bind('<Return>', lambda event: makeborder())
 
 
 # グラフ設定：移動ボタン
@@ -198,16 +248,43 @@ def locate(sp):
     graph.rewrite()
 
 
-left_btn = tk.Button(master=graphTab, text='←', command=lambda: locate(-span))
-right_btn = tk.Button(master=graphTab, text='→', command=lambda: locate(span))
+left_btn = tk.Button(master=graphTab, image=left, command=lambda: locate(-span))
+right_btn = tk.Button(master=graphTab, image=right, command=lambda: locate(span))
 
 # グラフ
-graph = graph.Graph()
+def onclick(event):
+    # print(event)
+    if event.xdata is not None and event.ydata is not None:
+        # print(event.xdata, event.ydata)
+        for wl in reformedList:
+            x = myDate.datetimeToFloat(wl[0])
+            # print(x)
+            if x < event.xdata < x + span*0.7:
+                # print(event.xdata, event.ydata)
+                l = [w[1] for w in wl[1].getworklist()]
+                s = datetime.timedelta(0)
+                for t in l:
+                    time, op = t.getdata()
+                    s += time
+                    if datetime.timedelta(minutes=event.ydata) < s and border[0] <= int(time.total_seconds()/60) and \
+                            border[1] <= op[0] and border[2] <= op[1] and border[3] <= op[2]:
+                        # print(event.xdata, event.ydata, t.getname(), t.getdata())
+                        x += span*0.35
+                        s = (s.seconds - t.getdata()[0].seconds/2) / 60
+                        graph.annotation(t.getname(), x, s)
+                        graph.rewrite()
+                        break
+                return
+    graph.hideannot()
+    graph.rewrite()
+
+
+graph = graph.Graph(lambda event: onclick(event))
 fileoperator = fileOperator.fileOperator()
 latest = fileoperator.searchlogfile(datetime.datetime.now())
 graphDataList = readData.parseData(latest)
-
-for wl in graphDataList:  # graphDataListをグラフに描画
+reformedList = readData.reform(graphDataList, '1h')
+for wl in reformedList:  # graphDataListをグラフに描画
     # print(wl[0])
     x = pd.DatetimeIndex([wl[0] + ':00:00'])
     graph.plotbar(x, wl, span*0.7)
@@ -215,22 +292,97 @@ for wl in graphDataList:  # graphDataListをグラフに描画
 graph.absoluteRange(span*8)
 graph.absoluteMove(graphDataList[-1][0], blank=span*0.3)
 graph.relativeMove(-(span*4))
-# reformedlist = readData.reform(graphDataList, '1m')
-# for wl in reformedlist:
-#     print(wl[0])
-#     for w in wl[1].getworklist():
-#         print('  ', w[0], w[1].getdata())
-#
+
 # for wl in graphDataList:
 #     print(wl[0])
 #     for w in wl[1].getworklist():
 #         print('  ', w[0], w[1].getdata())
+
+# 表タブ
+# 設定
+settingTableFrame = tk.Frame(tableTab, height=50)
+tdateFrame = tk.Frame(settingTableFrame, height=50)
+tdateLabel = tk.Label(tdateFrame, text='日時', font=12)
+
+
+# グラフ設定：日時：from：年
+tyear = tk.Entry(tdateFrame, width=4, validatecommand=vcmd1, font=('', 15, 'bold'), validate='key')
+slashLabel5 = tk.Label(tdateFrame, text='/', font=12)
+tyear.bind('<Return>', lambda event: enterevent(tmonth))
+# グラフ設定：日時：from：月
+tmonth = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+slashLabel6 = tk.Label(tdateFrame, text='/', font=12)
+tmonth.bind('<Return>', lambda event: enterevent(tday))
+# グラフ設定：日時：from：日
+tday = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+minusLabel3 = tk.Label(tdateFrame, text='-', font=12)
+tday.bind('<Return>', lambda event: enterevent(thour))
+# グラフ設定：日時：from：時
+thour = tk.Entry(tdateFrame, width=2, validatecommand=vcmd2, font=('', 15, 'bold'), validate='key')
+restLabel3 = tk.Label(tdateFrame, text=':00:00', font=12)
+thour.bind('<Return>', lambda event: enterevent(tdate_btn))
+# グラフ設定：日時：ボタン
+def tmove():
+    d = tyear.get(), tmonth.get(), tday.get(), thour.get()
+    flag = True
+    for i in d:
+        if not i.isdecimal():
+            flag = False
+
+    if flag is True:
+        d = datetime.datetime.strptime(d[0]+'/'+d[1]+'/'+d[2]+'/'+d[3], '%Y/%m/%d/%H')
+        if datetime.datetime(2020, 1, 1, 0) < d < datetime.datetime(2300, 1, 1, 0):
+            last = len(table.get_children()) # = int(len(cmd)/5)
+            loc = last
+            for i in range(len(table.get_children())):
+                s = datetime.datetime.strptime(cmd[i*5+1][2:], '%Y-%m-%d %H:%M:%S')
+                if s > d:
+                    loc = i
+                    break
+            table.yview_moveto(loc / last)
+            return
+        messagebox.showerror('エラー', '範囲が正しくありません。')
+        return
+    messagebox.showerror('エラー', '日付が正しくありません。')
+
+
+tdate_btn = tk.Button(master=tdateFrame, text='MOVE', command=tmove)
+tdate_btn.bind('<Return>', lambda event: tmove())
+
+# 表
+tableFrame = tk.Frame(tableTab)
+table = ttk.Treeview(tableFrame, height=30)
+table['show'] = "headings"
+table['columns'] = (1, 2, 3, 4, 5)
+table.heading(1,text="名前")
+table.heading(2,text="開始時刻")
+table.heading(3,text="終了時刻")
+table.heading(4,text="経過時間")
+table.heading(5,text="クリック/スクロール/キー入力")
+table.column(2, width=130)
+table.column(3, width=130)
+table.column(4, width=80)
+table.column(5, width=150)
+
+cmd = readData.openfile(latest)
+for i in range(int(len(cmd)/5)):
+    name = cmd[i*5][2:]
+    s = datetime.datetime.strptime(cmd[i*5+1][2:], '%Y-%m-%d %H:%M:%S')
+    e = datetime.datetime.strptime(cmd[i*5+2][2:], '%Y-%m-%d %H:%M:%S')
+    o = cmd[i*5+4][2:].split(' ')
+    o = o[0]+' / '+o[1]+' / '+o[2]
+    table.insert("", "end", values=(name, s, e, e-s, o))
+
+
+scroll = tk.Scrollbar(tableFrame, orient=tk.VERTICAL, command=table.yview)
+table["yscrollcommand"] = scroll.set
 
 # -----レイアウト生成-----
 # タブ
 nb.pack(fill='both', expand=1)
 # グラフ設定
 frame.pack(fill=tk.BOTH)
+frame2.pack(fill=tk.BOTH)
 # 日時
 dateFrame.pack(side='left', expand=True)
 dateLabel.pack(side='left')
@@ -259,9 +411,19 @@ barFormat.pack(side='left')
 perLabel.pack(side='left')
 # 幅
 widthFrame.pack(side='left', expand=True)
-widthLabel.pack(side='left')
 narrow_btn.pack(side='left')
 wide_btn.pack(side='left')
+# 足切り
+borderFrame.pack(side='left', expand=True)
+borderLabel.pack(side='left')
+click.pack(side='left')
+scrollLabel.pack(side='left')
+scrollnum.pack(side='left')
+keyLabel.pack(side='left')
+keynum.pack(side='left')
+timeLabel.pack(side='left')
+timenum.pack(side='left')
+border_btn.pack(side='left')
 
 # 移動ボタン(左)
 left_btn.pack(fill='x', padx=20, side='left')
@@ -269,6 +431,24 @@ left_btn.pack(fill='x', padx=20, side='left')
 graph.pack(graphTab)
 # 移動ボタン(右)
 right_btn.pack(fill='x', padx=20, side='right')
+
+# 表
+settingTableFrame.pack(fill=tk.BOTH)
+tdateFrame.pack(side='left', expand=True)
+tdateLabel.pack(side='left')
+tyear.pack(side='left')
+slashLabel5.pack(side='left')
+tmonth.pack(side='left')
+slashLabel6.pack(side='left')
+tday.pack(side='left')
+minusLabel3.pack(side='left')
+thour.pack(side='left')
+restLabel3.pack(side='left')
+tdate_btn.pack(side='left')
+
+tableFrame.pack(fill=tk.BOTH)
+scroll.pack(side='right', fill="y")
+table.pack(fill=tk.BOTH)
 
 # 実行
 root.mainloop()

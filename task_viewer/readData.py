@@ -58,11 +58,15 @@ class work:
 def sortmethod(wph):
     return myDate.datetimeToFloat(wph[0])
 
-def parseData(i):
-    wphList = []
+def openfile(i):
     fileoperator = fileOperator.fileOperator()
     t = fileoperator.readlogfile(i)
     cmd = t.split('\n')
+    return cmd
+
+def parseData(i):
+    wphList = []
+    cmd = openfile(i)
 
     for c in range(int(len(cmd) / 5)):
         name = cmd[c * 5][2:]

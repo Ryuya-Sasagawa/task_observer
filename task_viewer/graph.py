@@ -14,12 +14,13 @@ from typing import Final
 import myDate
 
 class Graph:
-    def __init__(self):
+    def __init__(self, onclick):
         self.fig = plt.Figure()
         self.ax = self.fig.add_subplot(111)
         self.init()
         self.blank = 0
         self.barwidth = 0
+        self.onclick = onclick
 
     def init(self, ylabel='minutes', ylim=62, barset='1h'):
         self.ax.set_ylabel(ylabel)
@@ -27,6 +28,10 @@ class Graph:
         self.ax.grid(axis='y', c='gainsboro', zorder=9)
         barsetDict = {'1h': 1, '3h': 2, '6h': 3, '12h': 4, '1d': 5, '1w': 6, '1m': 7}
         self._locator(barsetDict[barset])
+        self.annot = self.ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
+                                      bbox=dict(boxstyle="round", fc="w"), arrowprops=dict(arrowstyle="->"),
+                                      fontname="MS Gothic")
+        self.annot.set_visible(False)
 
     def _locator(self, type):
         if type == 1:
@@ -61,15 +66,30 @@ class Graph:
         self.ax.xaxis.set_major_formatter(majorFmt)
         self.ax.xaxis.set_minor_locator(minor)
 
-    def plotbar(self, x, worklist, width, per='min'):
+    def annotation(self, text, x, y):
+        # print(text, x, y)
+        self.annot.set_text(text)
+        self.annot.xy = (x,y)
+        self.annot.set_visible(True)
+
+    def hideannot(self):
+        self.annot.set_visible(False)
+
+    def plotbar(self, x, worklist, width, per='min', border=[0, 0, 0, 0]):
         self.barwidth = width
         perDict = {'sec':1, 'min':60, 'hour':3600}
         base = 0
         for w in worklist[1].getworklist():
             # print(w[1].getdata()[0].total_seconds()/60)
-            time = w[1].getdata()[0].total_seconds() / perDict[per]
-            self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
-            base += time
+            time, op = w[1].getdata()
+            time = time.total_seconds() / perDict[per]
+            mul = 60/ time if time > 0 else 1
+            op[0], op[1], op[2] = op[0]*mul, op[1]*mul, op[2]*mul
+            if border[0] <= time and border[1] <= op[0] and \
+                    border[2] <= op[1] and border[3] <= op[2]:
+                self.ax.bar(x, time, bottom=base, align='edge', width=width)  # データの描画
+                base += time
+
 
     def reset(self):
         self.ax.clear()
@@ -103,9 +123,11 @@ class Graph:
 
     def pack(self, master):
         self.canvas = FigureCanvasTkAgg(self.fig, master=master)
+        self.canvas.mpl_connect("motion_notify_event", self.onclick)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
 
     def rewrite(self):
+        self.canvas.mpl_connect("motion_notify_event", self.onclick)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side='left', fill=tk.BOTH, expand=1)
