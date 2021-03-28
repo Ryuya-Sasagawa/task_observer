@@ -147,57 +147,58 @@ def reform(wphList, barset, Day='Sun'):
         return reformedList
 
 if __name__ == '__main__':
-    wphList = []
-    password = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
-    t = fileOperator.fileOperator().readlogfile(0)
-    # t = file.read('../data/log_1', password)
-    cmd = t.split('\n')
-    # samplelist = ['n 無題 - メモ帳', 's 2021-03-10 14:07:10', 'e 2021-03-10 16:07:10', 't 0:00:00.183674', 'o 0 999 2']
-    # cmd[2175:2175] = samplelist ←最後尾-1
-    # print(cmd)
-    for c in range(int(len(cmd) / 5)):
-        name = cmd[c * 5][2:]
-        start = datetime.datetime.strptime(cmd[c * 5 + 1][2:], '%Y-%m-%d %H:%M:%S')
-        end = datetime.datetime.strptime(cmd[c * 5 + 2][2:], '%Y-%m-%d %H:%M:%S')
-        op = list(map(int, cmd[c * 5 + 4].split()[1:]))
-        while True:
-            start_hour = start.strftime('%Y-%m-%d %H')
-            if start_hour not in [r[0] for r in wphList]:
-                wphList.append([start_hour, work_per_hour(start_hour)])
-                wphList = sorted(wphList, key=sortmethod)
-            index = [r[0] for r in wphList].index(start_hour)
-            if start_hour != end.strftime('%Y-%m-%d %H'):
-                start_nextHour = datetime.datetime.strptime(start_hour, '%Y-%m-%d %H') + datetime.timedelta(hours=1)
-                time = start_nextHour - start
-                percentage = time / (end - start)
-                # print(percentage, [round(n * (1 - percentage)) for n in op])
-                w = work(name, time, [round(n * percentage) for n in op])
-                wphList[index][1].addwork(w)
-                op = [round(n * (1 - percentage)) for n in op]
-                start = start_nextHour
-            else:
-                time = end - start
-                w = work(name, time, op)
-                wphList[index][1].addwork(w)
-                break
-
-    for wl in wphList:
-        print(wl[0])
-        for w in wl[1].getworklist():
-            print('  ', w[0], w[1].getdata())
-
-    # プログラム案
-    # for i in range(タスクの個数):
-    #     y, m, d, h = cmdのstartから年、月、日、時間を抽出
+    # wphList = []
+    # password = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
+    # t = fileOperator.fileOperator().readlogfile(0)
+    # # t = file.read('../data/log_1', password)
+    # cmd = t.split('\n')
+    # # samplelist = ['n 無題 - メモ帳', 's 2021-03-10 14:07:10', 'e 2021-03-10 16:07:10', 't 0:00:00.183674', 'o 0 999 2']
+    # # cmd[2175:2175] = samplelist ←最後尾-1
+    # # print(cmd)
+    # for c in range(int(len(cmd) / 5)):
+    #     name = cmd[c * 5][2:]
+    #     start = datetime.datetime.strptime(cmd[c * 5 + 1][2:], '%Y-%m-%d %H:%M:%S')
+    #     end = datetime.datetime.strptime(cmd[c * 5 + 2][2:], '%Y-%m-%d %H:%M:%S')
+    #     op = list(map(int, cmd[c * 5 + 4].split()[1:]))
     #     while True:
-    #         if wphListにy, m, d, hが同じクラスが存在しない:
-    #             wph = work_per_hour(y, m, d, h)
-    #             wphList.append(wph)
-    #             wphリストのソート
-    #         if startとendが違う時間帯:
-    #             wphList.get(y,m,d,h).addTime(name, startの次の0分0秒（例：startが12時30分なら13時0分） - start)
-    #             (addTime関数内で、work_per_hourクラスに同じ名前のタスクがあれば統合、なければ新規で登録)
-    #             start = startの次の0分0秒
-    #         else:(startとendが同じ時間帯)
-    #             wphList.get(y,m,d,h).addTime(name, end-start)
+    #         start_hour = start.strftime('%Y-%m-%d %H')
+    #         if start_hour not in [r[0] for r in wphList]:
+    #             wphList.append([start_hour, work_per_hour(start_hour)])
+    #             wphList = sorted(wphList, key=sortmethod)
+    #         index = [r[0] for r in wphList].index(start_hour)
+    #         if start_hour != end.strftime('%Y-%m-%d %H'):
+    #             start_nextHour = datetime.datetime.strptime(start_hour, '%Y-%m-%d %H') + datetime.timedelta(hours=1)
+    #             time = start_nextHour - start
+    #             percentage = time / (end - start)
+    #             # print(percentage, [round(n * (1 - percentage)) for n in op])
+    #             w = work(name, time, [round(n * percentage) for n in op])
+    #             wphList[index][1].addwork(w)
+    #             op = [round(n * (1 - percentage)) for n in op]
+    #             start = start_nextHour
+    #         else:
+    #             time = end - start
+    #             w = work(name, time, op)
+    #             wphList[index][1].addwork(w)
     #             break
+    #
+    # for wl in wphList:
+    #     print(wl[0])
+    #     for w in wl[1].getworklist():
+    #         print('  ', w[0], w[1].getdata())
+    #
+    # # プログラム案
+    # # for i in range(タスクの個数):
+    # #     y, m, d, h = cmdのstartから年、月、日、時間を抽出
+    # #     while True:
+    # #         if wphListにy, m, d, hが同じクラスが存在しない:
+    # #             wph = work_per_hour(y, m, d, h)
+    # #             wphList.append(wph)
+    # #             wphリストのソート
+    # #         if startとendが違う時間帯:
+    # #             wphList.get(y,m,d,h).addTime(name, startの次の0分0秒（例：startが12時30分なら13時0分） - start)
+    # #             (addTime関数内で、work_per_hourクラスに同じ名前のタスクがあれば統合、なければ新規で登録)
+    # #             start = startの次の0分0秒
+    # #         else:(startとendが同じ時間帯)
+    # #             wphList.get(y,m,d,h).addTime(name, end-start)
+    # #             break
+    print(openfile(0))

@@ -37,17 +37,17 @@ def window():
         if phase == 1:
             button['text'] = '開始'
             while True:
-                # print('app wait')
+                print('app wait. phase: ', phase)
                 if phase == 2:
                     break
-                # time.sleep(1)
+                time.sleep(0.1)
         elif phase == 3:
             button['text'] = '停止'
             while True:
-                # print('app wait')
+                print('app wait')
                 if phase == 0:
                     break
-                # time.sleep(1)
+                time.sleep(0.1)
         else:
             print('error')
             phase -= 1
@@ -77,8 +77,10 @@ def observer():
     keyboard.start()  # キーボードの監視を開始する関数
 
     while True:
+        # print('phase: ', phase)
         if phase == 0:
-            # print('observer running')
+            # print('phase=0')
+            # print('logbuffer: ', logBuffer)
             activeWindowTitle = getActiveWindowTitle()  # 最前面のアプリのタイトルを取得
 
             # 分岐：最前面のアプリが変わったら
@@ -87,7 +89,7 @@ def observer():
                 temp = datetime.datetime.fromtimestamp(time.time())  # アプリの使用開始時刻を取得
                 # 「main.pyの起動から最初にアプリを開くまで」を除外
                 if len(bufWindowTitle) != 0:
-                    # print(temp - now, end=' ')  # debug
+                    print("t: ", temp - now)  # debug
                     # print(str(mouse.getClick()) + " " + str(keyboard.getPress()))  # debug
                     logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'  # アプリの使用終了時刻
                     logBuffer += 't ' + str(temp - now) + '\n'  # アプリの使用時間
@@ -107,42 +109,49 @@ def observer():
                 now = temp  # アプリの使用開始時刻
                 mouse.reset()  # クリック、スクロールのカウントをリセット
                 keyboard.reset()  # キー入力のカウントをリセット
-                # print(now, activeWindowTitle)  # debug
+                print("s: ", now, "n: ", activeWindowTitle)  # debug
                 logBuffer += 'n ' + activeWindowTitle + '\n'  # アプリの名前
                 logBuffer += 's ' + now.strftime('%Y-%m-%d %H:%M:%S') + '\n'  # アプリの使用開始時刻
                 bufWindowTitle = activeWindowTitle
+            time.sleep(0.1)
         elif phase == 1:
-            # print('phase=1')
-            temp = datetime.datetime.fromtimestamp(time.time())
-            logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'
-            logBuffer += 't ' + str(temp - now) + '\n'
-            logBuffer += 'o ' + str(mouse.getClick()) + " " + \
-                         str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n'
-            fileoperator.addlog(logBuffer)
-            # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
+            print('phase=1')
+            if len(bufWindowTitle) != 0:
+                print("t: ", temp - now)  # debug
+                temp = datetime.datetime.fromtimestamp(time.time())
+                logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'
+                logBuffer += 't ' + str(temp - now) + '\n'
+                logBuffer += 'o ' + str(mouse.getClick()) + " " + \
+                             str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n'
+                fileoperator.addlog(logBuffer)
+                # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
             lb_lineCount = 0
             logBuffer = ''
             mouse.reset()
             keyboard.reset()
             phase = 2
         elif phase == 2:
+            # print('phase=2')
             pass
         elif phase == 3:
             # print('phase=3')
-            logBuffer += 'n ' + activeWindowTitle + '\n'  # アプリの名前
-            logBuffer += 's ' + now.strftime('%Y-%m-%d %H:%M:%S') + '\n'  # アプリの使用開始時刻
-            bufWindowTitle = activeWindowTitle
+            logBuffer = ''  # アプリ名などを取得してからファイルに保存するまでに一時的に保管するバッファ
+            lb_lineCount = 0  # logBufferをファイルに書き込むタイミングを管理する変数
+            bufWindowTitle = ''
+            now = datetime.datetime.fromtimestamp(time.time())  # 現在時刻
             # time.sleep(5)
             phase = 0
         elif phase == 4:
             print('observer: sync being false')
-            temp = datetime.datetime.fromtimestamp(time.time())
-            logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'
-            logBuffer += 't ' + str(temp - now) + '\n'
-            logBuffer += 'o ' + str(mouse.getClick()) + " " + \
-                         str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n'
-            fileoperator.addlog(logBuffer)
-            # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
+            if len(bufWindowTitle) != 0:
+                print("t: ", temp - now)  # debug
+                temp = datetime.datetime.fromtimestamp(time.time())
+                logBuffer += 'e ' + temp.strftime('%Y-%m-%d %H:%M:%S') + '\n'
+                logBuffer += 't ' + str(temp - now) + '\n'
+                logBuffer += 'o ' + str(mouse.getClick()) + " " + \
+                             str(mouse.getScroll()) + " " + str(keyboard.getPress()) + '\n'
+                fileoperator.addlog(logBuffer)
+                # file.write(LOGFILE_NAME, PASSWORD, file.read(LOGFILE_NAME, PASSWORD) + logBuffer)
             mouse.stop()
             keyboard.stop()
             break
