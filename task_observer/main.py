@@ -7,9 +7,7 @@ import inputDevice
 import fileOperator
 
 # 定数
-# LOGFILE_NAME: Final[str] = '../data/log_1'
 LOGFILE_WRITE_TIMING: Final[int] = 100
-# PASSWORD: Final[str] = 'OiC&0~ktz1%i4nUg1ZodLM+XUPf(f|E9ez_vys9p'
 
 
 def getActiveWindowTitle():
